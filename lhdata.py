@@ -11,6 +11,7 @@ import Quandl as q
 
 import numpy as np
 from numpy import nan
+import math
 
 def get_online_lh_data(years, months):
     recordList = []
@@ -66,20 +67,22 @@ def plot_multiple_avgs(srcDf, pltMap, currYearColName):
     avgsDf = pd.DataFrame(index=srcDf.index)
 
     for key,val in pltMap.items() :
-        avgsDf[key] = srcDf[val].mean(axis=1)
+        colNames = [get_diffs_df_col_name(item) for item in val]
+        print(colNames)
+        avgsDf[key] = srcDf[colNames].mean(axis=1)
 
 
     fig, ax = plt.subplots(figsize=(15, 8), dpi=70)
     ax.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(dates.YearLocator())
-    ax.xaxis.set_major_formatter(dates.DateFormatter('\n\n %Y'))
+    ax.xaxis.set_major_formatter(dates.DateFormatter(''))
     for i, c in enumerate(avgsDf.columns):
         ax.plot(avgsDf[c], label=c, linewidth=1)
 
     #plot current year
-    col = srcDf[currYearColName]
-    ax.plot(col, label=c, linewidth=3, color='black')
+    col = srcDf[get_diffs_df_col_name(currYearColName)]
+    ax.plot(col, label="Current", linewidth=3, color='black')
     ax.axvline(col.last_valid_index())
     ax.axhline(col[col.last_valid_index()])
     ax.annotate(dt.date.today().strftime("%B %d"),
@@ -87,7 +90,7 @@ def plot_multiple_avgs(srcDf, pltMap, currYearColName):
             xytext=(35, 35), 
             textcoords='offset points',
             arrowprops=dict(arrowstyle='-|>'),
-            fontsize=22)
+            fontsize=18)
     avgsDf['Current'] = col
 
 
@@ -101,17 +104,39 @@ def get_diff_col_name(year, nearContractName, farContractName):
     colName = 'diff_{0}_{1}_{2}'.format(nearContractName, farContractName, year)
     return colName
 
-def plot_df(df, title):
-    print(df.head())
-
-    fig2, ax = plt.subplots(figsize=(15, 5), dpi=80)
-
-    ax.plot(df)
-
-    ax.grid(b=True, which='major', color='w', linewidth=1.0)
-    ax.grid(b=True, which='minor', color='w', linewidth=0.5)
+def plot_df(df, currYearColName, title):
+    #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
+    #http://stackoverflow.com/questions/14770735/changing-figure-size-with-subplots
+    f2, axes = plt.subplots(ncols=2, nrows=math.ceil(df.columns.size/2), figsize=(20,10), dpi=80)
+    
+    #f2.set_size_inches(20,10) # width, height
+    #f2.set_dpi(80)
+    
+    for i, c in enumerate(df.columns):
+        if(i==0):
+            df[c].plot(ax=axes[0,0])
+            df[currYearColName].plot(ax=axes[0,0], color='black', lw=1.2)
+            axes[0,0].set_title(c)
+            axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+            axes[0,0].xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+            axes[0,0].xaxis.set_major_locator(dates.YearLocator())
+            axes[0,0].xaxis.set_major_formatter(dates.DateFormatter(''))
+        else:
+            axis = axes[math.floor(i/2),i%2]
+            df[c].plot(ax=axis)
+            df[currYearColName].plot(ax=axis, color='black', lw=1.2)
+            axis.set_title(c)
+            axis.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+            axis.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+            axis.xaxis.set_major_locator(dates.YearLocator())
+            axis.xaxis.set_major_formatter(dates.DateFormatter(''))
+    
+    f2.set_tight_layout(True)
+    #ax1.grid(b=True, which='major', color='w', linewidth=1.0)
+    #ax1.grid(b=True, which='minor', color='w', linewidth=0.5)
     #legend = plt.legend(frameon=True)
     #frame = legend.get_frame()
     #frame.set_facecolor('white')
-    plt.title(title)
-    plt.show()
+
+def get_diffs_df_col_name(year):
+    return 'diff_LNK_LNN_{0}'.format(year)
