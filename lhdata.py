@@ -1,3 +1,9 @@
+# Matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import matplotlib.dates as dates
+import seaborn as sns
+
 import datetime as dt
 import pandas as pd
 from pandas.tseries.offsets import BDay # BDay is business day, not birthday...
@@ -55,12 +61,6 @@ def print_df(df):
 
 
 def plot_multiple_avgs(srcDf, pltMap, currYearColName):
-    # Matplotlib
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as ticker
-    import matplotlib.dates as dates
-    import seaborn as sns
-    
     # create a new dataframe with the same date range as the existing
     # We'll then put all the different means we want into this one
     avgsDf = pd.DataFrame(index=srcDf.index)
@@ -96,3 +96,22 @@ def plot_multiple_avgs(srcDf, pltMap, currYearColName):
     plt.show()
 
     return avgsDf
+
+def get_diff_col_name(year, nearContractName, farContractName):
+    colName = 'diff_{0}_{1}_{2}'.format(nearContractName, farContractName, year)
+    return colName
+
+def plot_df(df, title):
+    print(df.head())
+
+    fig2, ax = plt.subplots(figsize=(15, 5), dpi=80)
+
+    ax.plot(df)
+
+    ax.grid(b=True, which='major', color='w', linewidth=1.0)
+    ax.grid(b=True, which='minor', color='w', linewidth=0.5)
+    #legend = plt.legend(frameon=True)
+    #frame = legend.get_frame()
+    #frame.set_facecolor('white')
+    plt.title(title)
+    plt.show()
