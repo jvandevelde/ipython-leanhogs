@@ -92,7 +92,7 @@ def calculate(near, historicalYears):
     print(far)
     
     df = pd.read_pickle('data.pickle')
-    xlsWriter = pd.ExcelWriter('workingData.xlsx', 
+    xlsWriter = pd.ExcelWriter('output/workingData.xlsx', 
                             engine='xlsxwriter',
                             datetime_format='mmm dd, yyyy',
                             date_format='mmm dd, yyyy')
@@ -123,7 +123,7 @@ def calculate(near, historicalYears):
         worksheet = xlsWriter.sheets[worksheetName]
         worksheet.set_column('A:A', 18)
 
-    finalDataXlsWriter = pd.ExcelWriter('finalData.xlsx', 
+    finalDataXlsWriter = pd.ExcelWriter('output/finalData.xlsx', 
                             engine='xlsxwriter',
                             datetime_format='mmm dd',
                             date_format='mmm dd')
