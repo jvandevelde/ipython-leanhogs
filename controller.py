@@ -1,4 +1,7 @@
 import pandas as pd
+from pandas.tseries.offsets import BDay # BDay is business day, not birthday...
+from dateutil.relativedelta import relativedelta
+
 
 import numpy as np
 from numpy import nan
@@ -6,32 +9,87 @@ import datetime as dt
 
 import lhdata
 
-# are these months fixed (every year)?
-months = { 
-    # 1:'F', # Jan
+origMonths = { 
     2:'G', # Feb
-    # 3:'H', # Mar
     4:'J', # Apr
     5:'K', #May    
     6:'M', #Jun 
     7:'N', #Jul
     8:'Q', #Aug
-    #9:'U', #Sep
     10:'V', #Oct
-    #11:'X', #Nov
     12:'Z' #Dec 
-  }
+}
+
+months = { 
+    'G':2, # Feb
+    'J':4, # Apr
+    'K':5, #May    
+    'M':6, #Jun 
+    'N':7, #Jul
+    'Q':8, #Aug
+    'V':10, #Oct
+    'Z':12  #Dec 
+}
+
+regularMonthSets = {
+    'G':['J','K','M'],
+    'J':['K','M','N'],
+    'K':['M','N','Q'],
+    'M':['N','Q','V'],
+    'N':['Q','V','Z'],
+    'Q':['V','Z','G'],
+    'V':['Z','G','J'],
+    'Z':['G','J','K']
+}
 
 allYears = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]
 
 #df = lhdata.get_online_lh_data(allYears, months)
 #df.to_pickle('data.pickle')
 
+def get_active_years():
+    activeYears = []
+    thisYear = dt.date.today().year
+    activeYears.append(thisYear)
+    activeYears.append(thisYear + 1)
+    print(activeYears)
+    return activeYears
 
 
+def get_expiry_date_for_month(nearContract):
+    # Last trading day is the 10th business day of the month @ 12pm
+    # http://www.wikinvest.com/futures/Lean_Hogs_Futures
 
-def calculate(near, far, years):
+    currentDate = dt.date.today()
+    expiryYear = currentDate.year + 1
+    contractMonth = months[nearContract]
+
+    if currentDate.month <= contractMonth:
+        expiryYear =  currentDate.year
+
+    firstOfMonth = dt.datetime(expiryYear, contractMonth, 1, 0, 0)
     
+    return firstOfMonth + BDay(10)
+
+
+def get_graph_start_date(nearContract):
+    contractEndDate = get_expiry_date_for_month(nearContract)
+    startDate = contractEndDate - relativedelta(years=1) 
+
+    return startDate
+
+
+def calculate(near, historicalYears):
+    historicalYears.extend(get_active_years())
+    years = historicalYears
+
+    contractLetter = near[2]
+    print('Start Date: {0}\nEnd Date:{1}'.format(
+        get_graph_start_date(contractLetter),
+        get_expiry_date_for_month(contractLetter)))
+    
+    far = ["LN{0}".format(item) for item in regularMonthSets[contractLetter]]
+    print(far)
     
     df = pd.read_pickle('data.pickle')
     xlsWriter = pd.ExcelWriter('workingData.xlsx', 
@@ -47,7 +105,7 @@ def calculate(near, far, years):
         cols = []
         worksheetName = 'LNK {0}'.format(year)
         cols.append('{0}{1}'.format(near, year))
-        print("Calculating working datasets for {0}".format(year))
+        #print("Calculating working datasets for {0}".format(year))
         for fcn in far:
             cols.append('{0}{1}'.format(fcn, year))
         
@@ -69,9 +127,11 @@ def calculate(near, far, years):
                             engine='xlsxwriter',
                             datetime_format='mmm dd',
                             date_format='mmm dd')
+    
+    
     for farContractName in far :
         dfDiffs = pd.DataFrame()
-        print("Calculating shifted datasets {0}-{1}".format(near, farContractName))
+        #print("Calculating shifted datasets {0}-{1}".format(near, farContractName))
 
         for year in years :
             colName = lhdata.get_diff_col_name(year)
@@ -111,6 +171,5 @@ def calculate(near, far, years):
     finalDataXlsWriter.close()
     xlsWriter.save()
     xlsWriter.close()
-    print("Done calculating")
 
     return dfList

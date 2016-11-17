@@ -6,7 +6,6 @@ import seaborn as sns
 
 import datetime as dt
 import pandas as pd
-from pandas.tseries.offsets import BDay # BDay is business day, not birthday...
 import Quandl as q
 
 import numpy as np
@@ -35,15 +34,7 @@ def get_online_lh_data(years, months):
     
     return df
 
-def get_expiry_date_for_month(month, year):
-    firstOfMonth = dt.datetime(year, month, 1, 0, 0)
-    # Last trading day is the 10th business day of the month @ 12pm
-    # http://www.wikinvest.com/futures/Lean_Hogs_Futures
-    # but these numbers don't match the days at
-    # http://www.barchart.com/futures/expirations.php
-    expiry = firstOfMonth + BDay(10)
 
-    return expiry
 
 def get_contract(data, contractName):
     single = data[contractName]
@@ -146,6 +137,10 @@ def plot_df(df, currYearColName, title):
     
     f2.set_tight_layout(True)
     
+def get_month_label(x, pos=None):
+    x = dates.num2date(x)
+    return x.strftime('%b')[0]
+
 def plt_multiple_pairs(tupleList, near):
     f1 = plt.figure(num=1, figsize=(20, 10), dpi=80)
     j = 1
@@ -193,10 +188,11 @@ def plt_multiple_pairs(tupleList, near):
         # plot shifted data with the mean
         shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
         ax2 = f1.add_subplot(3,2,j+1)
-        ax2.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
-        ax2.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
-        ax2.xaxis.set_major_locator(dates.YearLocator())
-        ax2.xaxis.set_major_formatter(dates.DateFormatter(''))
+        ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))
+        ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
+        ax2.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
+        ax2.xaxis.set_minor_formatter(dates.DateFormatter('|'))
+        
         currYearColName = get_diff_col_name(dt.datetime.now().year + 1)
         for i, c in enumerate(shiftedCols):
             if(c == currYearColName):
@@ -233,7 +229,8 @@ def plt_multiple_pairs(tupleList, near):
         j+=2
         
         plot_df(df[shiftedCols], currYearColName, 'Individuals {0}-{1}'.format(near, farContractName))
-        
+
     plt.suptitle('{0} Data'.format(near))
     plt.tight_layout()
     plt.show()
+    
