@@ -35,16 +35,6 @@ def get_online_lh_data(years, months):
     return df
 
 
-
-def get_contract(data, contractName):
-    single = data[contractName]
-    single.dropna(inplace=True)
-    idx = pd.date_range(single.first_valid_index(), single.last_valid_index())
-    single = single.reindex(idx, fill_value=np.nan)
-    single.fillna(method='ffill', limit=3, inplace=True)
-    
-    return single
-
 def print_df(df):
     pd.set_option('display.max_rows', len(df))
     print(df)
@@ -92,7 +82,7 @@ def plot_multiple_avgs(srcDf, pltMap, currYearColName):
     return avgsDf
 
 def get_diff_col_name(year) :
-    return 'diff_{0}'.format(year)
+    return '{0}'.format(year)
     
 def plot_df(df, currYearColName, title):
     dfCleaned = pd.DataFrame(df)
@@ -156,18 +146,19 @@ def plt_multiple_pairs(tupleList, near):
         ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
         ax1.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
         ax1.xaxis.set_major_locator(dates.YearLocator())
-        ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%Y'))
+        ax1.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
         
-        origCols = [col for col in df.columns if col.startswith('orig_')]
-        for col in origCols:
+        # origCols = [col for col in df.columns if col.startswith('orig_')]
+
+        for col in df.columns:
             # if we're looking at this year (current) contract, let's plot a thick/black line
             # with a vertical/horizontal crosshair to make it easy to look at
-            if(col == 'orig_{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
+            if(col == '{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
                 ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
                 #ax1.plot(df[col], label=col, color='black', lineWidth=2)
             # normal case is to display a thin line for historical years
             else :
-                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='Hist {0}'.format(col), lineWidth=0.5, linestyle='-')
+                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=0.5, linestyle='-')
                 #ax1.plot(df[col], label='Hist {0}'.format(col), lineWidth=0.5, linestyle='-')
         
         ax1.grid(b=True, which='major', color='w', linewidth=1.0)
@@ -186,7 +177,7 @@ def plt_multiple_pairs(tupleList, near):
         
         
         # plot shifted data with the mean
-        shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
+        shiftedCols = [col for col in df.columns]
         ax2 = f1.add_subplot(3,2,j+1)
         ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))
         ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
