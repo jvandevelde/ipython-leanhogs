@@ -7,45 +7,9 @@ import numpy as np
 from numpy import nan
 import datetime as dt
 
-import lhdata
-
-origMonths = { 
-    2:'G', # Feb
-    4:'J', # Apr
-    5:'K', #May    
-    6:'M', #Jun 
-    7:'N', #Jul
-    8:'Q', #Aug
-    10:'V', #Oct
-    12:'Z' #Dec 
-}
-
-months = { 
-    'G':2, # Feb
-    'J':4, # Apr
-    'K':5, #May    
-    'M':6, #Jun 
-    'N':7, #Jul
-    'Q':8, #Aug
-    'V':10, #Oct
-    'Z':12  #Dec 
-}
-
-regularMonthSets = {
-    'G':['J','K','M'],
-    'J':['K','M','N'],
-    'K':['M','N','Q'],
-    'M':['N','Q','V'],
-    'N':['Q','V','Z'],
-    'Q':['V','Z','G'],
-    'V':['Z','G','J'],
-    'Z':['G','J','K']
-}
-
-allYears = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]
-
-#df = lhdata.get_online_lh_data(allYears, months)
-#df.to_pickle('data.pickle')
+import lhdata as lhdata
+import utility as util
+import dataManager as dm
 
 def get_active_years():
     activeYears = []
@@ -59,7 +23,7 @@ def get_active_years():
 def get_contract_expiry_date(contractName, expiryYear):
     # Last trading day is the 10th business day of the month @ 12pm
     # http://www.wikinvest.com/futures/Lean_Hogs_Futures
-    contractMonth = months[contractName]
+    contractMonth = util.months[contractName]
     firstOfMonth = dt.datetime(expiryYear, contractMonth, 1, 0, 0)
     
     return firstOfMonth + BDay(10)
@@ -91,10 +55,11 @@ def calculate(near, historicalYears):
         get_contract_start_date(nearContractMonthLetter, dt.date.today().year),
         get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
     
-    far = ["LN{0}".format(item) for item in regularMonthSets[nearContractMonthLetter]]
+    far = ["LN{0}".format(item) for item in util.regularMonthSets[nearContractMonthLetter]]
     print(far)
     
-    df = pd.read_pickle('data.pickle')
+    df = dm.load_data()
+
     xlsWriter = pd.ExcelWriter('output/workingData.xlsx', 
                             engine='xlsxwriter',
                             datetime_format='mmm dd, yyyy',
@@ -147,7 +112,6 @@ def calculate(near, historicalYears):
 
 
         for year in years :
-            print('Working on year {0}'.format(year))
             colName = lhdata.get_diff_col_name(year)
             
             nearContractData = get_contract_data(df, near, year)

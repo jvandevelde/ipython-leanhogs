@@ -6,41 +6,10 @@ import seaborn as sns
 
 import datetime as dt
 import pandas as pd
-import Quandl as q
 
 import numpy as np
 from numpy import nan
 import math
-
-def get_online_lh_data(years, months):
-    recordList = []
-    columnList = []
-    columnRenameDict = {}
-    for year in years :
-        for k,v in months.items() :
-            s = "CME/LN{0}{1}".format(v,year)
-            recordList.append(s)
-            t = "CME.LN{0}{1} - Settle".format(v,year)
-            tx = "LN{0}{1}".format(v,year)
-            columnList.append(t)
-            columnRenameDict.update({t:tx})
-
-    df = q.get(
-        recordList, 
-        authtoken= "dXzByDoZicZy-WFvPyTf")[
-            columnList]
-
-    df.rename(columns=columnRenameDict, inplace=True)
-    
-    return df
-
-
-def print_df(df):
-    pd.set_option('display.max_rows', len(df))
-    print(df)
-    pd.reset_option('display.max_rows')
-
-
 
 def plot_multiple_avgs(srcDf, pltMap, currYearColName):
     # create a new dataframe with the same date range as the existing
@@ -140,43 +109,17 @@ def plt_multiple_pairs(tupleList, near):
         farContractName = pair[0]
         df = pair[1]
         
-        ax1 = f1.add_subplot(3,2,j)
-        #ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) +
-        #                   cycler('lw', [1, 2, 3, 4]))
-        ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
-        ax1.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
-        ax1.xaxis.set_major_locator(dates.YearLocator())
-        ax1.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
-        
-        # origCols = [col for col in df.columns if col.startswith('orig_')]
+        ###########
+        # Plot the contract differences in their original years (unshifted)
+        ###########
+        dfUnshifted = pair[2]
+        plot_contract_continuously_through_years(dfUnshifted, near, farContractName, f1, j)
 
-        for col in df.columns:
-            # if we're looking at this year (current) contract, let's plot a thick/black line
-            # with a vertical/horizontal crosshair to make it easy to look at
-            if(col == '{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
-                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
-                #ax1.plot(df[col], label=col, color='black', lineWidth=2)
-            # normal case is to display a thin line for historical years
-            else :
-                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=0.5, linestyle='-')
-                #ax1.plot(df[col], label='Hist {0}'.format(col), lineWidth=0.5, linestyle='-')
-        
-        ax1.grid(b=True, which='major', color='w', linewidth=1.0)
-        ax1.grid(b=True, which='minor', color='w', linewidth=0.5)
-        # Shrink current axis by 20%
-        box = ax1.get_position()
-        ax1.set_position([box.x0, box.y0, box.width * 0.88, box.height])
-
-        # Put a legend to the top of the current axis
-        legend = ax1.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                            fancybox=True, shadow=True)
-        frame = legend.get_frame()
-        frame.set_facecolor('white')
-        ax1.set_title('Continuous {0} - {1}'.format(near, farContractName))
         
         
-        
+        ###########
         # plot shifted data with the mean
+        ###########
         shiftedCols = [col for col in df.columns]
         ax2 = f1.add_subplot(3,2,j+1)
         ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))
@@ -219,9 +162,49 @@ def plt_multiple_pairs(tupleList, near):
 
         j+=2
         
+        ###########
+        # Plot each individual column (year) against the mean in it's own figure
+        ###########
         plot_df(df[shiftedCols], currYearColName, 'Individuals {0}-{1}'.format(near, farContractName))
 
     plt.suptitle('{0} Data'.format(near))
     plt.tight_layout()
     plt.show()
+
+
+def plot_contract_continuously_through_years(df, near, farContractName, figure, j):
+    ax1 = figure.add_subplot(3,2,j)
+    #ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) +
+    #                   cycler('lw', [1, 2, 3, 4]))
+    ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+    ax1.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+    ax1.xaxis.set_major_locator(dates.YearLocator())
+    ax1.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
+    
+    # origCols = [col for col in df.columns if col.startswith('orig_')]
+
+    for col in df.columns:
+        # if we're looking at this year (current) contract, let's plot a thick/black line
+        # with a vertical/horizontal crosshair to make it easy to look at
+        if(col == '{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
+            ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
+            #ax1.plot(df[col], label=col, color='black', lineWidth=2)
+        # normal case is to display a thin line for historical years
+        else :
+            ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=0.5, linestyle='-')
+            #ax1.plot(df[col], label='Hist {0}'.format(col), lineWidth=0.5, linestyle='-')
+    
+    ax1.grid(b=True, which='major', color='w', linewidth=1.0)
+    ax1.grid(b=True, which='minor', color='w', linewidth=0.5)
+    # Shrink current axis by 20%
+    box = ax1.get_position()
+    ax1.set_position([box.x0, box.y0, box.width * 0.88, box.height])
+
+    # Put a legend to the top of the current axis
+    legend = ax1.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
+                        fancybox=True, shadow=True)
+    frame = legend.get_frame()
+    frame.set_facecolor('white')
+    ax1.set_title('Continuous {0} - {1}'.format(near, farContractName))
+        
     
