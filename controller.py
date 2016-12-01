@@ -68,7 +68,6 @@ def calculate(near, historicalYears):
     df.to_excel(xlsWriter, sheet_name='Original')
 
 
-
     for year in years:
         cols = []
         worksheetName = 'LNK {0}'.format(year)
