@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.tseries.offsets import BDay # BDay is business day, not birthday...
 from dateutil.relativedelta import relativedelta
-
+from collections import OrderedDict
 
 import numpy as np
 from numpy import nan
@@ -48,7 +48,9 @@ def get_contract_data(data, contractName, year):
 
 def calculate(near, historicalYears):
     historicalYears.extend(get_active_years())
-    years = historicalYears
+    
+    # remove any duplicates that may have occurred by user entry + trying to calculate active years
+    years = list(OrderedDict.fromkeys(historicalYears))
 
     nearContractMonthLetter = near[2]
     print('Start Date: {0}\nEnd Date:{1}'.format(

@@ -1,3 +1,3 @@
 call activate root
-call jupyter notebook
+call jupyter notebook hogs.ipynb
 pause

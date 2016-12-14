@@ -15,14 +15,24 @@ import utility as util
 import controller
 import lhdata
 
-
 def start(custSeriesDef):
     def on_click_historical_popout(b):
         clear_output()
-        print('Clicked val1:{0} val2:{1}'.format(near_month_dropdown.value, multi_yr_sel.value))
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_historical_comparison(dfList, near)
+
+    def on_click_individual_popout(b):
+        clear_output()
+        near = 'LN{0}'.format(near_month_dropdown.value)
+
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        lhdata.plot_individual_against_current(dfList, near)
+
+    def on_click_historical_cont_popout(b):
+        clear_output()
+        near = 'LN{0}'.format(near_month_dropdown.value)
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_continual_spread_set(dfList, near)
 
     def on_click_historical_interactive(b):
@@ -36,8 +46,9 @@ def start(custSeriesDef):
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
         df = disp[0].dropna(how='all')
-        df.iplot(kind='scatter',xTitle='Date',yTitle='Difference',title='{0}-{1}'.format(near, far), theme='henanigans', dimensions=(1000,500))
-        cf.getThemes()
+        df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near, far), theme='henanigans', dimensions=(900,500))
+        
+        #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
     def on_click_gen_custom_series(b):
         clear_output()
@@ -58,6 +69,8 @@ def start(custSeriesDef):
         dfAvgs = on_click_gen_custom_series(b)
         dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near,far), theme='polar', dimensions=(900,500))
 
+        #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
+
     def on_near_month_dropdown_change(name, old, new):
         far_month_dropdown.options = util.regularMonthSets[new]
 
@@ -71,25 +84,33 @@ def start(custSeriesDef):
 
 
     gen_hist_popout_btn = widgets.Button(
-        description='Generate All Externally',
+        description='Generate Comparison',
         tooltip='Will open multiple windows with figures',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_hist_popout_btn.on_click(on_click_historical_popout)
-
-    gen_hist_interactive_btn = widgets.Button(
-        description='Show Single Interactive',
-        tooltip='Show Near-Far inline',
+    
+    gen_hist_cont_popout_btn = widgets.Button(
+        description='Generate Continous Series',
+        tooltip='Will open multiple windows with figures',
         width='220px',
-        button_style='warning' #'success', 'info', 'warning', 'danger' or ''
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
-    gen_hist_interactive_btn.on_click(on_click_historical_interactive)
+    gen_hist_cont_popout_btn.on_click(on_click_historical_cont_popout)
+
+    gen_indvidual_popout_btn = widgets.Button(
+        description='Individuals',
+        tooltip='Will open multiple windows with figures',
+        width='220px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        )
+    gen_indvidual_popout_btn.on_click(on_click_individual_popout)
 
     gen_custom_series_btn = widgets.Button(
-        description='Compare custom series',
-        tooltip='Compare custom series',
-        width='220px',
+        description='Compare custom series (Popout)',
+        tooltip='Compare custom series in popup',
+        width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
         )
     gen_custom_series_btn.on_click(on_click_gen_custom_series)
@@ -97,10 +118,19 @@ def start(custSeriesDef):
     gen_custom_int_series_btn = widgets.Button(
         description='Compare custom series (Interactive)',
         tooltip='Compare custom series',
-        width='220px',
+        width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
         )
     gen_custom_int_series_btn.on_click(on_click_gen_custom_int_series)
+
+    gen_hist_interactive_btn = widgets.Button(
+        description='Single Far Spread (Interactive)',
+        tooltip='Show a single spread interactively',
+        width='250px',
+        button_style='warning' #'success', 'info', 'warning', 'danger' or ''
+        )
+    gen_hist_interactive_btn.on_click(on_click_historical_interactive)
+
 
     near_month_dropdown = widgets.Dropdown(options=newMonths, width='120px', height='30px')
     near_month_dropdown.on_trait_change(on_near_month_dropdown_change, 'value')
@@ -113,25 +143,28 @@ def start(custSeriesDef):
     dd_cont2 = widgets.HBox(children=[widgets.Label('Far Contract:'), 
        far_month_dropdown])
     
-    btns1 = [dd_cont1, gen_hist_popout_btn]
-    btns2 = [dd_cont2, gen_hist_interactive_btn, gen_custom_series_btn, gen_custom_int_series_btn]
+    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_indvidual_popout_btn]
+    btns2 = [dd_cont2, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=btns1)
     v_col3 = widgets.VBox(children=btns2)
     h_cont = widgets.HBox(children=[v_col1, v_col2, v_col3])
 
+    # display the arranged controls
     display(h_cont)
 
     # define some helpers to select the last n years
+    year = dt.datetime.today().year
     def on_click_sel_last_five_yrs(b):
-        multi_yr_sel.value=list(range(dt.datetime.today().year - 4, dt.datetime.today().year + 1)),
+        last_five = [x for x in multi_yr_sel.options if x > year - 5]
+        multi_yr_sel.value = last_five
     def on_click_sel_last_nine_yrs(b):
-        multi_yr_sel.value=list(range(dt.datetime.today().year - 8, dt.datetime.today().year + 1)),
+        last_nine = [x for x in multi_yr_sel.options if x > year - 8]
+        multi_yr_sel.value = last_nine
     def on_click_sel_last_fifteen_yrs(b):
-        multi_yr_sel.value=list(range(dt.datetime.today().year - 14, dt.datetime.today().year + 1)),
+        last_fifteen = [x for x in multi_yr_sel.options if x > year - 15]
+        multi_yr_sel.value = last_fifteen
     
-
-
     btn_sel_last_five_yrs = widgets.Button(
         description='Five',
         width='80px',
@@ -155,4 +188,5 @@ def start(custSeriesDef):
     
     h_sel_cont = widgets.HBox(children=[btn_sel_last_five_yrs, btn_sel_last_nine_yrs, btn_sel_last_fifteen_yrs])
 
+    # display the arranged controls
     display(h_sel_cont)

@@ -52,53 +52,67 @@ def plot_custom_historical_series(srcDf, pltMap, currYearColName):
 
 def get_diff_col_name(year) :
     return '{0}'.format(year)
+
+
+def plot_individual_against_current(dfList, near):
+    currYearColName = get_diff_col_name(dt.datetime.now().year + 1)
     
-def plot_df(df, currYearColName, title):
-    dfCleaned = pd.DataFrame(df)
-    df = dfCleaned.dropna(thresh=1)
-    #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
-    #http://stackoverflow.com/questions/14770735/changing-figure-size-with-subplots
-    f2, axes = plt.subplots(ncols=2, nrows=math.ceil(df.columns.size/2), figsize=(20,10), dpi=80)
+    for pair in dfList:
+        df = pair[1]
+        print(pair[0])
+        print(pair[1].columns.values)
+        print(pair[2].columns.values)
+        dfCleaned = pd.DataFrame(df)
+        df = dfCleaned.dropna(thresh=1)
+        #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
+        #http://stackoverflow.com/questions/14770735/changing-figure-size-with-subplots
+        f2, axes = plt.subplots(ncols=2, nrows=math.ceil(df.columns.size/2), figsize=(20,10), dpi=80)
+        
+        #f2.set_size_inches(20,10) # width, height
+        #f2.set_dpi(80)
+
+        title = 'Individuals {0}-{1}'.format(near, pair[0])
+
+
+        for i, c in enumerate(df.columns):
+            if(i==0):
+                df[c].plot(ax=axes[0,0])
+                df[currYearColName].plot(ax=axes[0,0], color='black', lw=1.2)
+                axes[0,0].set_title('{0} {1}'.format(title,c))
+                axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+                axes[0,0].xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+                axes[0,0].xaxis.set_major_locator(dates.YearLocator())
+                axes[0,0].xaxis.set_major_formatter(dates.DateFormatter(''))
+                axes[0,0].grid(b=True, which='major', color='w', linewidth=1.0)
+                axes[0,0].grid(b=True, which='minor', color='w', linewidth=0.5)
+                legend = axes[0,0].legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
+                                    fancybox=True, shadow=True)
+                frame = legend.get_frame()
+                frame.set_facecolor('white')
+            else:
+                axis = axes[math.floor(i/2),i%2]
+                df[c].plot(ax=axis)
+                df[currYearColName].plot(ax=axis, color='black', lw=1.2)
+                axis.set_title('{0} {1}'.format(title,c))
+                axis.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+                axis.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+                axis.xaxis.set_major_locator(dates.YearLocator())
+                axis.xaxis.set_major_formatter(dates.DateFormatter(''))
+                axis.grid(b=True, which='major', color='w', linewidth=1.0)
+                axis.grid(b=True, which='minor', color='w', linewidth=0.5)
+                legend = axis.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
+                                    fancybox=True, shadow=True)
+                frame = legend.get_frame()
+                frame.set_facecolor('white')
+        
+        f2.set_tight_layout(True)
+        f2.suptitle = title
     
-    #f2.set_size_inches(20,10) # width, height
-    #f2.set_dpi(80)
-    
-    for i, c in enumerate(df.columns):
-        if(i==0):
-            df[c].plot(ax=axes[0,0])
-            df[currYearColName].plot(ax=axes[0,0], color='black', lw=1.2)
-            axes[0,0].set_title('{0} {1}'.format(title,c))
-            axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=4))
-            axes[0,0].xaxis.set_minor_formatter(dates.DateFormatter('%b'))
-            axes[0,0].xaxis.set_major_locator(dates.YearLocator())
-            axes[0,0].xaxis.set_major_formatter(dates.DateFormatter(''))
-            axes[0,0].grid(b=True, which='major', color='w', linewidth=1.0)
-            axes[0,0].grid(b=True, which='minor', color='w', linewidth=0.5)
-            legend = axes[0,0].legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                                fancybox=True, shadow=True)
-            frame = legend.get_frame()
-            frame.set_facecolor('white')
-        else:
-            axis = axes[math.floor(i/2),i%2]
-            df[c].plot(ax=axis)
-            df[currYearColName].plot(ax=axis, color='black', lw=1.2)
-            axis.set_title('{0} {1}'.format(title,c))
-            axis.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
-            axis.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
-            axis.xaxis.set_major_locator(dates.YearLocator())
-            axis.xaxis.set_major_formatter(dates.DateFormatter(''))
-            axis.grid(b=True, which='major', color='w', linewidth=1.0)
-            axis.grid(b=True, which='minor', color='w', linewidth=0.5)
-            legend = axis.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                                fancybox=True, shadow=True)
-            frame = legend.get_frame()
-            frame.set_facecolor('white')
-    
-    f2.set_tight_layout(True)
-    
+    plt.show()
+
 def get_month_label(x, pos=None):
     x = dates.num2date(x)
-    return x.strftime('%b')[0]
+    return x.strftime('%b-01')[0]
 
 def plot_continual_spread_set(dataList, nearContract):
     figure = plt.figure(num=1, figsize=(15,10), dpi=80)
@@ -125,14 +139,12 @@ def plot_continual_spread_set(dataList, nearContract):
             # with a vertical/horizontal crosshair to make it easy to look at
             if(col == '{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
                 ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
-                #ax1.plot(df[col], label=col, color='black', lineWidth=2)
             # normal case is to display a thin line for historical years
             else :
                 ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=0.5, linestyle='-')
-                #ax1.plot(df[col], label='Hist {0}'.format(col), lineWidth=0.5, linestyle='-')
-        
-        ax1.grid(b=True, which='major', color='w', linewidth=1.0)
-        ax1.grid(b=True, which='minor', color='w', linewidth=0.5)
+                
+        ax1.grid(b=True, which='major', color='w', linewidth=1.5)
+        ax1.grid(b=True, which='minor', color='w', linewidth=1.0)
         # Shrink current axis by 20%
         box = ax1.get_position()
         ax1.set_position([box.x0, box.y0, box.width * 0.88, box.height])
@@ -152,7 +164,8 @@ def plot_continual_spread_set(dataList, nearContract):
     plt.show()
 
 def plot_historical_comparison(tupleList, near):
-    f1 = plt.figure(num=1, figsize=(20, 10), dpi=80)
+    f1 = plt.figure(num=1, figsize=(15, 10), dpi=80)
+    
     j = 1
     
     for pair in tupleList:
@@ -165,11 +178,13 @@ def plot_historical_comparison(tupleList, near):
         df = pair[1]
 
         shiftedCols = [col for col in df.columns]
+        
         ax2 = f1.add_subplot(3,1,j)
         ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))
-        ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
+        #ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
+        ax2.xaxis.set_major_formatter(dates.DateFormatter('%b-01'))
         
-        ax2.xaxis.set_minor_locator(dates.DayLocator(bymonthday=14, interval=1))
+        ax2.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[14, 21], interval=1))
         ax2.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
         
         #ax2.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
@@ -177,6 +192,7 @@ def plot_historical_comparison(tupleList, near):
         
         currYearColName = get_diff_col_name(dt.datetime.now().year + 1)
         for i, c in enumerate(shiftedCols):
+            l = None
             if(c == currYearColName):
                 ax2.plot(df[c], label=c, linewidth=2, color='black')
                 ax2.axvline(df[c].last_valid_index())
@@ -186,10 +202,10 @@ def plot_historical_comparison(tupleList, near):
                      xytext=(35, 35), 
                      textcoords='offset points',
                      arrowprops=dict(arrowstyle='-|>'),
-                     fontsize=18)
+                     fontsize=16)
             else:
                 ax2.plot(df[c], label=c, linewidth=1)
-
+            
         # calculate the mean for all years (minus the current contract) and plot it
         cols = [col for col in shiftedCols if col not in [currYearColName]]
         #print('cols to average {0}', cols)
@@ -207,16 +223,15 @@ def plot_historical_comparison(tupleList, near):
         frame = legend.get_frame()
         frame.set_facecolor('white')
         ax2.set_title('Overlay {0} - {1}'.format(near, farContractName))
+        ax2.grid(b=True, which='major', color='w', linewidth=1.5)
+        ax2.grid(b=True, which='minor', color='w', linewidth=1.0)
+        # http://stackoverflow.com/a/28063506
+        plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
+        plt.subplots_adjust(hspace=0.3)
 
         j+=1
-        
-        ###########
-        # Plot each individual column (year) against the mean in it's own figure
-        ###########
-        plot_df(df[shiftedCols], currYearColName, 'Individuals {0}-{1}'.format(near, farContractName))
-
-    #plt.suptitle('{0} Data'.format(near))
-    plt.tight_layout()
+    
+    plt.suptitle('Historic Data for {0}'.format(near))
     plt.show()
 
 
