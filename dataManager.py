@@ -95,11 +95,12 @@ def get_leanhog_contract_data(years):
 def get_existing_file_age(filename):
     delta = None
 
-    histContractDataFile = Path(filename)
+    dataFile = Path(filename)
     
-    if histContractDataFile.is_file():
+    if dataFile.is_file():
         filetime = os.path.getmtime(filename) # filename is the path to the local file you are refreshing
-        print("Last save date: {0}".format(filetime))
+        formattedTime = time.strftime('%m/%d/%Y', time.localtime(filetime))
+        print("{0} was last updated on: {1}".format(filename, formattedTime))
         now = time.time()
         delta = dt.timedelta(seconds=now - filetime)
     

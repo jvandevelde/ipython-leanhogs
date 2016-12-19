@@ -197,9 +197,9 @@ def plot_historical_comparison(tupleList, near):
                 ax2.plot(df[c], label=c, linewidth=2, color='black')
                 ax2.axvline(df[c].last_valid_index())
                 ax2.axhline(df[c][df[c].last_valid_index()])
-                ax2.annotate(dt.date.today().strftime("%B %d"),
+                ax2.annotate(dt.date.today().strftime("%b %d"),
                      (df[c].last_valid_index(), df[c][df[c].last_valid_index()]),
-                     xytext=(35, 35), 
+                     xytext=(40, -40), 
                      textcoords='offset points',
                      arrowprops=dict(arrowstyle='-|>'),
                      fontsize=16)
@@ -208,32 +208,30 @@ def plot_historical_comparison(tupleList, near):
             
         # calculate the mean for all years (minus the current contract) and plot it
         cols = [col for col in shiftedCols if col not in [currYearColName]]
-        #print('cols to average {0}', cols)
         df['mean'] = df[cols].mean(axis=1)
+        
         ax2.plot(df['mean'], color='red', linewidth=1.5, label='AVG')
         shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
 
-        # Shrink current axis by 20%
+        # Shrink the x-axis and place the legend on the outside
+        # http://stackoverflow.com/a/4701285
         box = ax2.get_position()
-        ax2.set_position([box.x0, box.y0, box.width * 0.95, box.height])
-
-        # Put a legend to the top of the current axis
+        ax2.set_position([box.x0, box.y0, box.width * 0.92, box.height * 0.90])
         legend = ax2.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                            fancybox=True, shadow=True)
+                            fancybox=True, shadow=True, ncol=2)
         frame = legend.get_frame()
         frame.set_facecolor('white')
+
         ax2.set_title('Overlay {0} - {1}'.format(near, farContractName))
         ax2.grid(b=True, which='major', color='w', linewidth=1.5)
         ax2.grid(b=True, which='minor', color='w', linewidth=1.0)
+        
+        # rotate major tick labels to avoid overlapping
         # http://stackoverflow.com/a/28063506
         plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
-        plt.subplots_adjust(hspace=0.3)
+        #plt.subplots_adjust(hspace=0.3)    # this does not seem to work with ax.set_position() above - it causes that call to not be executed
 
         j+=1
     
     plt.suptitle('Historic Data for {0}'.format(near))
     plt.show()
-
-
-        
-    

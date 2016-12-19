@@ -36,32 +36,104 @@ def get_contract_start_date(contractName, year):
     return startDate
 
 
-def get_contract_data(data, contractName, year):
+def get_contract_data(dataFrame, contractName, year):
+    contractColumn = pd.DataFrame()
     colName = "{0}{1}".format(contractName, year)
-    single = data[colName]
-    single.dropna(inplace=True)
-    idx = pd.date_range(single.first_valid_index(), single.last_valid_index())
-    single = single.reindex(idx, fill_value=np.nan)
-    single.fillna(method='ffill', limit=3, inplace=True)
+
+    if colName in dataFrame.columns:
+        contractColumn = dataFrame[colName]
+        contractColumn.dropna(inplace=True)
+        idx = pd.date_range(contractColumn.first_valid_index(), contractColumn.last_valid_index())
+        contractColumn = contractColumn.reindex(idx, fill_value=np.nan)
+        contractColumn.fillna(method='ffill', limit=3, inplace=True)
     
-    return single
+    return contractColumn
 
 def calculate(near, historicalYears):
+    nearContractMonthLetter = near[2]
     historicalYears.extend(get_active_years())
     
     # remove any duplicates that may have occurred by user entry + trying to calculate active years
     years = list(OrderedDict.fromkeys(historicalYears))
-
-    nearContractMonthLetter = near[2]
-    print('Start Date: {0}\nEnd Date:{1}'.format(
-        get_contract_start_date(nearContractMonthLetter, dt.date.today().year),
-        get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
     
     far = ["LN{0}".format(item) for item in util.regularMonthSets[nearContractMonthLetter]]
-    print(far)
+
+    print('Start Date: {0} - End Date:{1} : Far Contracts {2}'.format(
+        get_contract_start_date(nearContractMonthLetter, dt.date.today().year),
+        get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year),
+        far))
     
     df = dm.load_data()
 
+    # TODO: Create option to enable this
+    # create_workbook(df, near, far, years)
+    
+    finalDataXlsWriter = pd.ExcelWriter('output/finalData.xlsx', 
+                            engine='xlsxwriter',
+                            datetime_format='mmm dd',
+                            date_format='mmm dd')
+
+
+    graphStartDte = get_contract_start_date(nearContractMonthLetter, dt.date.today().year)
+    graphEndDte = get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)
+    print("Graph strt/end: {0} - {1}".format(graphStartDte, graphEndDte))
+    
+    dfList = []  
+    for farContractName in far :
+        idx = pd.date_range(graphStartDte, graphEndDte)
+        dfDiffsShifted = pd.DataFrame(index=idx)
+        
+        idxOriginal = pd.date_range(df.first_valid_index(), df.last_valid_index())
+        dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
+
+
+        for year in years :
+            colName = lhdata.get_diff_col_name(year)
+            
+            nearContractData = get_contract_data(df, near, year)
+            
+            # if we are comparing a contract at the end of the year to one at the beginning of the year
+            # we need to correct the year (b/c we're actually subtracting the next year's data)
+            if (near in ['LNQ', 'LNV', 'LNZ']) and (farContractName in ['LNG', 'LNJ', 'LNK']) and (year <= dt.date.today().year) :
+                print("Far contract rollover detected, year changed to {0}".format(year))
+                farContractData = get_contract_data(df, farContractName, year + 1)
+            else:
+                farContractData = get_contract_data(df, farContractName, year)
+
+            if (nearContractData.empty) or (farContractData.empty):
+                continue
+
+            difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
+            difference.dropna(inplace=True)
+            
+            dfDiff = pd.DataFrame(difference, columns=[colName])
+
+            diffStartDte = get_contract_start_date(nearContractMonthLetter, year)
+            diffEndDte = get_contract_expiry_date(nearContractMonthLetter, year)
+
+            idx = pd.date_range(diffStartDte, diffEndDte)
+            dfDiff = dfDiff.reindex(idx, fill_value=np.nan)
+            
+            #### Need to figure out the number of days between 
+            daysToShift = (dfDiff.first_valid_index() - graphStartDte).days
+            ## Concat http://chrisalbon.com/python/pandas_join_merge_dataframe.html
+            dfDiffsOriginalDtes = pd.concat([dfDiffsOriginalDtes, dfDiff], axis=1)
+            shifted = dfDiff.shift(-daysToShift, 'D')
+            dfDiffsShifted = pd.concat([dfDiffsShifted, shifted], axis=1)
+
+        dfDiffsShifted.dropna(thresh=1, inplace=True)
+        dfDiffsOriginalDtes.dropna(thresh=1, inplace=True)
+        
+        dfList.append([farContractName, dfDiffsShifted, dfDiffsOriginalDtes])
+        dfDiffsShifted.to_excel(finalDataXlsWriter, sheet_name=farContractName)
+
+    finalDataXlsWriter.save()
+    finalDataXlsWriter.close()
+
+    return dfList
+
+
+def create_workbook(df, near, far, years):
     xlsWriter = pd.ExcelWriter('output/workingData.xlsx', 
                             engine='xlsxwriter',
                             datetime_format='mmm dd, yyyy',
@@ -92,61 +164,6 @@ def calculate(near, historicalYears):
         worksheet = xlsWriter.sheets[worksheetName]
         worksheet.set_column('A:A', 18)
 
-    finalDataXlsWriter = pd.ExcelWriter('output/finalData.xlsx', 
-                            engine='xlsxwriter',
-                            datetime_format='mmm dd',
-                            date_format='mmm dd')
-    
-    
-    graphStartDte = get_contract_start_date(nearContractMonthLetter, dt.date.today().year)
-    graphEndDte = get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)
-    print("Graph strt/end: {0} - {1}".format(graphStartDte, graphEndDte))
-    
-    dfList = []  
-    for farContractName in far :
-        
-        idx = pd.date_range(graphStartDte, graphEndDte)
-        dfDiffsShifted = pd.DataFrame(index=idx)
-        
-        idxOriginal = pd.date_range(df.first_valid_index(), df.last_valid_index())
-        dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
-
-
-        for year in years :
-            colName = lhdata.get_diff_col_name(year)
-            
-            nearContractData = get_contract_data(df, near, year)
-            farContractData = get_contract_data(df, farContractName, year)
-
-            difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
-            difference.dropna(inplace=True)
-            
-            dfDiff = pd.DataFrame(difference, columns=[colName])
-            
-
-            diffStartDte = get_contract_start_date(nearContractMonthLetter, year)
-            diffEndDte = get_contract_expiry_date(nearContractMonthLetter, year)
-
-            #print("Diff strt/end: {0} - {1}".format(diffStartDte, diffEndDte))
-            idx = pd.date_range(diffStartDte, diffEndDte)
-            dfDiff = dfDiff.reindex(idx, fill_value=np.nan)
-
-            #### Need to figure out the number of days between 
-            daysToShift = (dfDiff.first_valid_index() - graphStartDte).days
-            ## Concat http://chrisalbon.com/python/pandas_join_merge_dataframe.html
-            dfDiffsOriginalDtes = pd.concat([dfDiffsOriginalDtes, dfDiff], axis=1)
-            shifted = dfDiff.shift(-daysToShift, 'D')
-            dfDiffsShifted = pd.concat([dfDiffsShifted, shifted], axis=1)
-
-        dfDiffsShifted.dropna(thresh=1, inplace=True)
-        dfDiffsOriginalDtes.dropna(thresh=1, inplace=True)
-        
-        dfList.append([farContractName, dfDiffsShifted, dfDiffsOriginalDtes])
-        dfDiffsShifted.to_excel(finalDataXlsWriter, sheet_name=farContractName)
-
-    finalDataXlsWriter.save()
-    finalDataXlsWriter.close()
     xlsWriter.save()
     xlsWriter.close()
-
-    return dfList
+    

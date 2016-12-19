@@ -73,6 +73,7 @@ def start(custSeriesDef):
 
     def on_near_month_dropdown_change(name, old, new):
         far_month_dropdown.options = util.regularMonthSets[new]
+        far_month_dropdown.value = far_month_dropdown.options[0]
 
     newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
 
