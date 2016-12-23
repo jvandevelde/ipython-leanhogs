@@ -1,6 +1,6 @@
 import pickle
 import pandas as pd
-import Quandl as q
+import quandl as q
 from pathlib import Path
 import datetime as dt
 import os
