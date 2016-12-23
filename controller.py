@@ -82,7 +82,7 @@ def calculate(near, historicalYears):
     for farContractName in far :
         idx = pd.date_range(graphStartDte, graphEndDte)
         dfDiffsShifted = pd.DataFrame(index=idx)
-        
+
         idxOriginal = pd.date_range(df.first_valid_index(), df.last_valid_index())
         dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
 

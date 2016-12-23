@@ -11,23 +11,33 @@ import numpy as np
 from numpy import nan
 import math
 
-def plot_custom_historical_series(srcDf, pltMap, currYearColName):
+def calculate_custom_historical_series(srcDf, pltMap, currYearColName):
     # create a new dataframe with the same date range as the existing
     # We'll then put all the different means we want into this one
     avgsDf = pd.DataFrame(index=srcDf.index)
 
     for key,val in pltMap.items() :
         colNames = [get_diff_col_name(item) for item in val]
-        print(colNames)
         avgsDf[key] = srcDf[colNames].mean(axis=1)
 
+    col = srcDf[get_diff_col_name(currYearColName)]
+
+    avgsDf['Current'] = col
+
+    return avgsDf
+
+def plot_custom_historical_series(srcDf, pltMap, currYearColName):
+    avgsDf = calculate_custom_historical_series(srcDf, pltMap, currYearColName)
 
     fig, ax = plt.subplots(figsize=(15, 8), dpi=70)
     ax.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(dates.YearLocator())
     ax.xaxis.set_major_formatter(dates.DateFormatter(''))
-    for i, c in enumerate(avgsDf.columns):
+    
+    # plot everything but the current year
+    cols = [col for col in avgsDf.columns if col not in ['Current']]
+    for i, c in enumerate(cols):
         ax.plot(avgsDf[c], label=c, linewidth=1)
 
     #plot current year
@@ -41,14 +51,10 @@ def plot_custom_historical_series(srcDf, pltMap, currYearColName):
             textcoords='offset points',
             arrowprops=dict(arrowstyle='-|>'),
             fontsize=18)
-    avgsDf['Current'] = col
-
-
+    
     plt.grid()
     plt.legend()
     plt.show()
-
-    return avgsDf
 
 def get_diff_col_name(year) :
     return '{0}'.format(year)
@@ -59,9 +65,7 @@ def plot_individual_against_current(dfList, near):
     
     for pair in dfList:
         df = pair[1]
-        print(pair[0])
-        print(pair[1].columns.values)
-        print(pair[2].columns.values)
+
         dfCleaned = pd.DataFrame(df)
         df = dfCleaned.dropna(thresh=1)
         #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
@@ -72,7 +76,6 @@ def plot_individual_against_current(dfList, near):
         #f2.set_dpi(80)
 
         title = 'Individuals {0}-{1}'.format(near, pair[0])
-
 
         for i, c in enumerate(df.columns):
             if(i==0):

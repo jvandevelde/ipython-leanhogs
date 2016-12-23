@@ -57,16 +57,17 @@ def start(custSeriesDef):
         
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-        dfAvgs = lhdata.plot_custom_historical_series(disp[0], custSeriesDef, '2017')
+        lhdata.plot_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year)
         
-        return dfAvgs
-
+    
     def on_click_gen_custom_int_series(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
 
-        dfAvgs = on_click_gen_custom_series(b)
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
+        dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year)
         dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near,far), theme='polar', dimensions=(900,500))
 
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly

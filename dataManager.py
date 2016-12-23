@@ -1,6 +1,6 @@
 import pickle
 import pandas as pd
-import quandl as q
+import Quandl as q
 from pathlib import Path
 import datetime as dt
 import os
@@ -43,29 +43,23 @@ def load_data():
 def load_existing_data_file(years, filename):
     contract_df = pd.DataFrame()
 
-    try:
-        histContractDataFile = Path(filename)
-        if histContractDataFile.is_file():
-            print('Loading data from file \'{0}\''.format(filename))
-            contract_df = pd.read_pickle(filename)
-        else:
-            print('\'{0}\' does not exist'.format(filename))
-            contract_df = get_and_save_data_from_quandl(years, filename)
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-    
+    histContractDataFile = Path(filename)
+    if histContractDataFile.is_file():
+        print('Loading data from file \'{0}\''.format(filename))
+        contract_df = pd.read_pickle(filename)
+    else:
+        print('\'{0}\' does not exist'.format(filename))
+        contract_df = get_and_save_data_from_quandl(years, filename)
+
     return contract_df
 
 def get_and_save_data_from_quandl(years, filename):
     contract_df = pd.DataFrame()
 
-    try:
-        contract_df = get_leanhog_contract_data(years)
-        with open(filename, 'wb') as fi:
-            pickle.dump(contract_df, fi)
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-    
+    contract_df = get_leanhog_contract_data(years)
+    with open(filename, 'wb') as fi:
+        pickle.dump(contract_df, fi)
+
     return contract_df
 
 def get_leanhog_contract_data(years):
