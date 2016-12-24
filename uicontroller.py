@@ -54,21 +54,27 @@ def start(custSeriesDef):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
+        title = 'Custom mean {0} - {1}'.format(near, far)
         
-        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
+        
+        dfList = controller.calculate(near, unique_years)
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-        lhdata.plot_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year)
+        lhdata.plot_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year + 1, title)
         
     
     def on_click_gen_custom_int_series(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
+        title = 'Custom mean {0} - {1}'.format(near, far)
+        
+        unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
 
-        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        dfList = controller.calculate(near, unique_years)
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-        dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year)
-        dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near,far), theme='polar', dimensions=(900,500))
+        dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year + 1)
+        dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(900,500))
 
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 

@@ -26,15 +26,19 @@ def calculate_custom_historical_series(srcDf, pltMap, currYearColName):
 
     return avgsDf
 
-def plot_custom_historical_series(srcDf, pltMap, currYearColName):
+def plot_custom_historical_series(srcDf, pltMap, currYearColName, title):
     avgsDf = calculate_custom_historical_series(srcDf, pltMap, currYearColName)
 
     fig, ax = plt.subplots(figsize=(15, 8), dpi=70)
-    ax.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
-    ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
-    ax.xaxis.set_major_locator(dates.YearLocator())
-    ax.xaxis.set_major_formatter(dates.DateFormatter(''))
     
+    ax.xaxis.set_major_locator(dates.MonthLocator(interval=1))
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%b-01'))
+    ax.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[14, 21], interval=1))
+    ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
+    
+    ax.grid(b=True, which='major', color='w', linewidth=1.5)
+    ax.grid(b=True, which='minor', color='w', linewidth=1.0)
+
     # plot everything but the current year
     cols = [col for col in avgsDf.columns if col not in ['Current']]
     for i, c in enumerate(cols):
@@ -42,17 +46,20 @@ def plot_custom_historical_series(srcDf, pltMap, currYearColName):
 
     #plot current year
     col = srcDf[get_diff_col_name(currYearColName)]
+    print(col)
     ax.plot(col, label="Current", linewidth=3, color='black')
     ax.axvline(col.last_valid_index())
     ax.axhline(col[col.last_valid_index()])
-    ax.annotate(dt.date.today().strftime("%B %d"),
+    ax.annotate(dt.date.today().strftime("%b %d"),
             (col.last_valid_index(), col[col.last_valid_index()]),
-            xytext=(35, 35), 
+            xytext=(-45, 60), 
             textcoords='offset points',
             arrowprops=dict(arrowstyle='-|>'),
-            fontsize=18)
+            fontsize=16)
     
-    plt.grid()
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+    plt.title(title)
     plt.legend()
     plt.show()
 
