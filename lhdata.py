@@ -6,10 +6,12 @@ import seaborn as sns
 
 import datetime as dt
 import pandas as pd
+from pandas import TimeGrouper
 
 import numpy as np
 from numpy import nan
 import math
+import utility as utils
 
 def calculate_custom_historical_series(srcDf, pltMap, currYearColName):
     # create a new dataframe with the same date range as the existing
@@ -123,6 +125,49 @@ def plot_individual_against_current(dfList, near):
 def get_month_label(x, pos=None):
     x = dates.num2date(x)
     return x.strftime('%b-01')[0]
+
+def plot_seasonal_boxplot(dataList, nearContract):
+    #pd.options.display.mpl_style = 'default'
+    i = 1
+    x = sorted(list(utils.allMonths.values()))
+    month = utils.months[nearContract[2]]
+    rotatedMonths = x[month: ] + x[ :month]
+    print(rotatedMonths)
+    idx = rotatedMonths.index(month)
+    print("index {0}".format(rotatedMonths.index(month)))
+    print([(x - (idx-1)) + len(rotatedMonths) for x in rotatedMonths])
+    for listItems in dataList:
+        df = listItems[2]
+        cols = list(df.columns.values)
+        
+        df['sum'] = df[cols].sum(axis=1)
+        df['count'] = df[cols].count(axis=1)
+        df['month'] = df.index.month
+        
+        
+        
+        #http://machinelearningmastery.com/time-series-data-visualization-with-python/
+        #fig = plt.figure(1, figsize=(9, 6))
+        # Create an axes instance
+        #ax = fig.add_subplot(3,1,i)
+        #i=i+1
+
+        # Create the boxplot
+        #bp = ax.boxplot(df['sum'],showfliers=True, sym='k.')
+        #plt.ylim(ymin=-60, ymax=60)
+        #bp = sns.boxplot(df['sum'],ax=ax)
+        
+        #print(df)
+        print(x[month:])
+        ax = df.boxplot(column=['sum'], by='month', showmeans=True, positions=rotatedMonths)
+        # set your own proper title
+        plt.title("{0}-{1}".format(nearContract, listItems[0]))
+        # get rid of the automatic 'Boxplot grouped by group_by_column_name' title
+        plt.suptitle("")
+        plt.show()
+
+        #df['sum'].hist()
+
 
 def plot_continual_spread_set(dataList, nearContract):
     figure = plt.figure(num=1, figsize=(15,10), dpi=80)

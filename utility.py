@@ -1,6 +1,21 @@
 import collections
 import pandas as pd
 
+allMonths = { 
+    'X1':1, #Jan
+    'G':2, # Feb
+    'X2':3,
+    'J':4, # Apr
+    'K':5, #May    
+    'M':6, #Jun 
+    'N':7, #Jul
+    'Q':8, #Aug
+    'X3':9,
+    'V':10, #Oct
+    'X4':11,
+    'Z':12  #Dec 
+}
+
 months = { 
     'G':2, # Feb
     'J':4, # Apr
