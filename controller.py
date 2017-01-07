@@ -101,6 +101,7 @@ def calculate(near, historicalYears):
                 farContractData = get_contract_data(df, farContractName, year)
 
             if (nearContractData.empty) or (farContractData.empty):
+                print("Empty dataframe detected")
                 continue
 
             difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
@@ -113,8 +114,12 @@ def calculate(near, historicalYears):
 
             idx = pd.date_range(diffStartDte, diffEndDte)
             dfDiff = dfDiff.reindex(idx, fill_value=np.nan)
-            
+            if(dfDiff[colName].isnull().all()):
+                print("All values in range {0}-{1} for {2} are empty. Continuing".format(diffStartDte, diffEndDte, colName))
+                continue
+
             #### Need to figure out the number of days between 
+            #print(dfDiff)
             daysToShift = (dfDiff.first_valid_index() - graphStartDte).days
             ## Concat http://chrisalbon.com/python/pandas_join_merge_dataframe.html
             dfDiffsOriginalDtes = pd.concat([dfDiffsOriginalDtes, dfDiff], axis=1)
