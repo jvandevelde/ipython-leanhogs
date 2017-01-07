@@ -81,6 +81,11 @@ def get_leanhog_contract_data(years):
 
     df = q.get(recordList,
            authtoken="dXzByDoZicZy-WFvPyTf")
+    
+    # take out any of the columns that Quandl didn't return that were expected
+    # possibly a contract year that hasn't started
+    columnList = [x for x in columnList if x in df.columns]
+    
     df = df[columnList]
     df.rename(columns=columnRenameDict, inplace=True)
     
