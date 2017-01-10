@@ -66,11 +66,14 @@ def start(custSeriesDef):
         
         dfList = controller.calculate(near, unique_years)
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-        lhdata.plot_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year + 1, title)
+        lhdata.plot_custom_historical_series(disp[0], custSeriesDef, title)
         
     
     def on_click_gen_custom_int_series(b):
         clear_output()
+        cf.go_offline() # required to use plotly offline (no account required).
+        py.init_notebook_mode() # graphs charts inline (IPython).
+        
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
         title = 'Custom mean {0} - {1}'.format(near, far)
@@ -79,7 +82,7 @@ def start(custSeriesDef):
 
         dfList = controller.calculate(near, unique_years)
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-        dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef, dt.datetime.today().year + 1)
+        dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef)
         dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(900,500))
 
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly

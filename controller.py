@@ -89,7 +89,7 @@ def calculate(near, historicalYears):
         print('All years: {0}'.format(years))
         for year in years :
             
-            colName = lhdata.get_diff_col_name(year)
+            colName = str(year)
             
             nearContractData = get_contract_data(df, near, year)
             

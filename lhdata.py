@@ -13,23 +13,25 @@ from numpy import nan
 import math
 import utility as utils
 
-def calculate_custom_historical_series(srcDf, pltMap, currYearColName):
+def calculate_custom_historical_series(srcDf, pltMap):
     # create a new dataframe with the same date range as the existing
     # We'll then put all the different means we want into this one
     avgsDf = pd.DataFrame(index=srcDf.index)
 
     for key,val in pltMap.items() :
-        colNames = [get_diff_col_name(item) for item in val]
+        colNames = [str(item) for item in val]
         avgsDf[key] = srcDf[colNames].mean(axis=1)
-
-    col = srcDf[get_diff_col_name(currYearColName)]
+    
+    currYearColName = get_most_recent_year_column_name(srcDf)
+    col = srcDf[currYearColName]
 
     avgsDf['Current'] = col
 
     return avgsDf
 
-def plot_custom_historical_series(srcDf, pltMap, currYearColName, title):
-    avgsDf = calculate_custom_historical_series(srcDf, pltMap, currYearColName)
+def plot_custom_historical_series(srcDf, pltMap, title):
+    currYearColName = get_most_recent_year_column_name(srcDf)
+    avgsDf = calculate_custom_historical_series(srcDf, pltMap)
 
     fig, ax = plt.subplots(figsize=(15, 8), dpi=70)
     
@@ -47,8 +49,7 @@ def plot_custom_historical_series(srcDf, pltMap, currYearColName, title):
         ax.plot(avgsDf[c], label=c, linewidth=1)
 
     #plot current year
-    col = srcDf[get_diff_col_name(currYearColName)]
-    print(col)
+    col = srcDf[currYearColName]
     ax.plot(col, label="Current", linewidth=3, color='black')
     ax.axvline(col.last_valid_index())
     ax.axhline(col[col.last_valid_index()])
@@ -65,18 +66,24 @@ def plot_custom_historical_series(srcDf, pltMap, currYearColName, title):
     plt.legend()
     plt.show()
 
-def get_diff_col_name(year) :
-    return '{0}'.format(year)
+def get_most_recent_year_column_name(df):
+    currYear = dt.datetime.now().year
+    currYearColName = str(currYear)
+    if(str(currYear + 1) in df.columns):
+        currYearColName = str(currYear + 1)
 
+    return currYearColName
 
 def plot_individual_against_current(dfList, near):
-    currYearColName = get_diff_col_name(dt.datetime.now().year + 1)
+    
     
     for pair in dfList:
         df = pair[1]
 
         dfCleaned = pd.DataFrame(df)
         df = dfCleaned.dropna(thresh=1)
+        currYearColName = get_most_recent_year_column_name(df)
+
         #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
         #http://stackoverflow.com/questions/14770735/changing-figure-size-with-subplots
         f2, axes = plt.subplots(ncols=2, nrows=math.ceil(df.columns.size/2), figsize=(20,10), dpi=80)
@@ -192,7 +199,7 @@ def plot_continual_spread_set(dataList, nearContract):
         for col in df.columns:
             # if we're looking at this year (current) contract, let's plot a thick/black line
             # with a vertical/horizontal crosshair to make it easy to look at
-            if(col == '{0}'.format(get_diff_col_name(dt.datetime.now().year + 1))) :
+            if(col == '{0}'.format(get_most_recent_year_column_name(df))) :
                 ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
             # normal case is to display a thin line for historical years
             else :
@@ -245,7 +252,7 @@ def plot_historical_comparison(tupleList, near):
         #ax2.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
         #ax2.xaxis.set_minor_formatter(dates.DateFormatter('|'))
         
-        currYearColName = get_diff_col_name(dt.datetime.now().year + 1)
+        currYearColName = get_most_recent_year_column_name(df)
         for i, c in enumerate(shiftedCols):
             l = None
             if(c == currYearColName):
