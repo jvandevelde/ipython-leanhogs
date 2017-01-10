@@ -34,6 +34,12 @@ def start(custSeriesDef):
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_continual_spread_set(dfList, near)
+        
+    def on_click_historical_boxplot(b):
+        clear_output()
+        near = 'LN{0}'.format(near_month_dropdown.value)
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        lhdata.plot_seasonal_boxplot(dfList, near)
 
     def on_click_historical_interactive(b):
         clear_output()
@@ -107,6 +113,14 @@ def start(custSeriesDef):
         )
     gen_hist_cont_popout_btn.on_click(on_click_historical_cont_popout)
 
+    gen_hist_boxplot_popout_btn = widgets.Button(
+        description='Generate Boxplot',
+        tooltip='Will open multiple windows with figures',
+        width='220px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        )
+    gen_hist_boxplot_popout_btn.on_click(on_click_historical_boxplot)
+
     gen_indvidual_popout_btn = widgets.Button(
         description='Individuals',
         tooltip='Will open multiple windows with figures',
@@ -151,7 +165,7 @@ def start(custSeriesDef):
     dd_cont2 = widgets.HBox(children=[widgets.Label('Far Contract:'), 
        far_month_dropdown])
     
-    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_indvidual_popout_btn]
+    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_boxplot_popout_btn, gen_indvidual_popout_btn]
     btns2 = [dd_cont2, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=btns1)
