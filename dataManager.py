@@ -10,6 +10,7 @@ import sys
 import utility as util
 
 curr_year = dt.date.today().year
+last_year = curr_year - 1
 all_months = list(util.months.keys())
 
 hist_data_filename = "data.hist.pickle"
@@ -27,6 +28,15 @@ def load_data():
     
     # make sure we have contract data from the past (1995 to curr-1)
     hist_df = load_existing_data_file(hist_years, hist_data_filename)
+    # on Jan 1st, we will always need to roll over last years data into the historical dataset
+    if all(column.endswith(str(last_year)) == False for column in hist_df.columns):
+        print('Loaded historical data does not include \'{0}\' (is it January?). Performing rollover...'.format(curr_year))
+        last_year_df = get_leanhog_contract_data([last_year])
+        util.print_df(last_year_df)
+        hist_df = pd.concat([hist_df, last_year_df], axis=1)
+        util.print_df(hist_df.columns)
+        with open(hist_data_filename, 'wb') as fi:
+            pickle.dump(hist_df, fi)
 
     # if the file doesn't exist or is out of date, download from Quandl
     curr_df = pd.DataFrame()
@@ -42,15 +52,16 @@ def load_data():
 
 def load_existing_data_file(years, filename):
     contract_df = pd.DataFrame()
-
+    
     histContractDataFile = Path(filename)
+
     if histContractDataFile.is_file():
         print('Loading data from file \'{0}\''.format(filename))
         contract_df = pd.read_pickle(filename)
     else:
-        print('\'{0}\' does not exist'.format(filename))
+        print('Datafile \'{0}\' does not exist. Creating...'.format(filename))
         contract_df = get_and_save_data_from_quandl(years, filename)
-
+        
     return contract_df
 
 def get_and_save_data_from_quandl(years, filename):
