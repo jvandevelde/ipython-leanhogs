@@ -58,10 +58,9 @@ def calculate(near, historicalYears):
     
     far = ["LN{0}".format(item) for item in util.regularMonthSets[nearContractMonthLetter]]
 
-    print('Start Date: {0} - End Date:{1} : Far Contracts {2}'.format(
-        get_contract_start_date(nearContractMonthLetter, dt.date.today().year),
-        get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year),
-        far))
+    print('{0} Start Date: {1}'.format(near, get_contract_start_date(nearContractMonthLetter, dt.date.today().year)))
+    print('{0} End Date: {1}'.format(near, get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
+    print('{0} Far Contracts: {1}'.format(near, far))
     
     df = dm.load_data()
 
@@ -76,7 +75,8 @@ def calculate(near, historicalYears):
 
     graphStartDte = get_contract_start_date(nearContractMonthLetter, dt.date.today().year)
     graphEndDte = get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)
-    print("Graph strt/end: {0} - {1}".format(graphStartDte, graphEndDte))
+    print('Graph Start: {0}'.format(graphStartDte))
+    print('Graph End: {0}'.format(graphEndDte))
     
     dfList = []  
     for farContractName in far :
@@ -86,8 +86,9 @@ def calculate(near, historicalYears):
         idxOriginal = pd.date_range(df.first_valid_index(), df.last_valid_index())
         dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
 
-
+        print('All years: {0}'.format(years))
         for year in years :
+            
             colName = lhdata.get_diff_col_name(year)
             
             nearContractData = get_contract_data(df, near, year)
@@ -101,7 +102,7 @@ def calculate(near, historicalYears):
                 farContractData = get_contract_data(df, farContractName, year)
 
             if (nearContractData.empty) or (farContractData.empty):
-                print("Empty dataframe detected")
+                print("Empty dataframe detected. Year: {0}".format(year))
                 continue
 
             difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
