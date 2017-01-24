@@ -15,17 +15,32 @@ import utility as util
 import controller
 import lhdata
 
+import seaborn as sns
+
+
 def start(custSeriesDef):
+    sns.set_style("whitegrid")
+    
+    # historical comparison - 3 rows/far contracts in a single figure
     def on_click_historical_popout(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_historical_comparison(dfList, near)
 
+    # historical comparison - single far contract
+    def on_click_single_historical_popout(b):
+        clear_output()
+        near = 'LN{0}'.format(near_month_dropdown.value)
+        far = 'LN{0}'.format(far_month_dropdown.value)
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        dfDisplay = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far][0]
+        lhdata.plot_single_historical_comparison(dfDisplay, near, far)
+
+    # historical comparison - figure per far contract, with a plot per year
     def on_click_individual_popout(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
-
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_individual_against_current(dfList, near)
 
@@ -52,7 +67,7 @@ def start(custSeriesDef):
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
         df = disp[0].dropna(how='all')
-        df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near, far), theme='henanigans', dimensions=(900,500))
+        df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0}-{1}'.format(near, far), theme='henanigans', dimensions=(850,350))
         
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
@@ -83,7 +98,7 @@ def start(custSeriesDef):
         dfList = controller.calculate(near, unique_years)
         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
         dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef)
-        dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(900,500))
+        dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(850,350))
 
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
@@ -101,47 +116,55 @@ def start(custSeriesDef):
 
 
     gen_hist_popout_btn = widgets.Button(
-        description='Generate Comparison',
-        tooltip='Will open multiple windows with figures',
+        description='#1 - 3x Hist. Comparison',
+        tooltip='Historical Comparison with 3 far contracts shown',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_hist_popout_btn.on_click(on_click_historical_popout)
     
+    gen_single_hist_popout_btn = widgets.Button(
+        description='#2 - 1x Hist. Comparison',
+        tooltip='Historical Comparison with only 1 far contract shown',
+        width='220px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        )
+    gen_single_hist_popout_btn.on_click(on_click_single_historical_popout)
+
     gen_hist_cont_popout_btn = widgets.Button(
-        description='Generate Continous Series',
-        tooltip='Will open multiple windows with figures',
+        description='#3 - Continous Series',
+        tooltip='Shows the spread over time without overlay',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_hist_cont_popout_btn.on_click(on_click_historical_cont_popout)
 
     gen_hist_boxplot_popout_btn = widgets.Button(
-        description='Generate Boxplot',
-        tooltip='Will open multiple windows with figures',
+        description='#4 - Monthly Boxplot Stats',
+        tooltip='Show monthly stats for selected years',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_hist_boxplot_popout_btn.on_click(on_click_historical_boxplot)
 
     gen_indvidual_popout_btn = widgets.Button(
-        description='Individuals',
-        tooltip='Will open multiple windows with figures',
+        description='#5 - Individuals',
+        tooltip='Show each year and contract in it''s own plot',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_indvidual_popout_btn.on_click(on_click_individual_popout)
 
     gen_custom_series_btn = widgets.Button(
-        description='Compare custom series (Popout)',
-        tooltip='Compare custom series in popup',
+        description='#6 - Custom series',
+        tooltip='Compare the mean of each entered custom series against each other',
         width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
         )
     gen_custom_series_btn.on_click(on_click_gen_custom_series)
 
     gen_custom_int_series_btn = widgets.Button(
-        description='Compare custom series (Interactive)',
+        description='#7 - Custom series (Interactive)',
         tooltip='Compare custom series',
         width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
@@ -149,7 +172,7 @@ def start(custSeriesDef):
     gen_custom_int_series_btn.on_click(on_click_gen_custom_int_series)
 
     gen_hist_interactive_btn = widgets.Button(
-        description='Single Far Spread (Interactive)',
+        description='#8 - Single Far (Interactive)',
         tooltip='Show a single spread interactively',
         width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
@@ -168,7 +191,7 @@ def start(custSeriesDef):
     dd_cont2 = widgets.HBox(children=[widgets.Label('Far Contract:'), 
        far_month_dropdown])
     
-    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_boxplot_popout_btn, gen_indvidual_popout_btn]
+    btns1 = [dd_cont1, gen_hist_popout_btn, gen_single_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_boxplot_popout_btn, gen_indvidual_popout_btn]
     btns2 = [dd_cont2, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=btns1)

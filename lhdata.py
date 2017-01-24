@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.dates as dates
 import seaborn as sns
+from cycler import cycler
 
 import datetime as dt
 import pandas as pd
@@ -37,11 +38,11 @@ def plot_custom_historical_series(srcDf, pltMap, title):
     
     ax.xaxis.set_major_locator(dates.MonthLocator(interval=1))
     ax.xaxis.set_major_formatter(dates.DateFormatter('%b-01'))
-    ax.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[14, 21], interval=1))
+    ax.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[15], interval=1))
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
     
-    ax.grid(b=True, which='major', color='w', linewidth=1.5)
-    ax.grid(b=True, which='minor', color='w', linewidth=1.0)
+    ax.grid(b=True, which='major', color='k', linewidth=1.0, linestyle='dashed')
+    ax.grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
 
     # plot everything but the current year
     cols = [col for col in avgsDf.columns if col not in ['Current']]
@@ -50,20 +51,24 @@ def plot_custom_historical_series(srcDf, pltMap, title):
 
     #plot current year
     col = srcDf[currYearColName]
-    ax.plot(col, label="Current", linewidth=3, color='black')
-    ax.axvline(col.last_valid_index())
-    ax.axhline(col[col.last_valid_index()])
-    ax.annotate(dt.date.today().strftime("%b %d"),
-            (col.last_valid_index(), col[col.last_valid_index()]),
-            xytext=(-45, 60), 
-            textcoords='offset points',
-            arrowprops=dict(arrowstyle='-|>'),
-            fontsize=16)
+    ax.plot(col, label="Curr.", linewidth=1.75, color='black')
     
-    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    ax.axvline(col.last_valid_index(), color='blue', linewidth=1.75)
+    ax.axhline(col[col.last_valid_index()], color='blue', linewidth=1.75)
 
+    # print arrow annotation to current date
+    #ax.annotate(dt.date.today().strftime("%b %d"),
+    #        (col.last_valid_index(), col[col.last_valid_index()]),
+    #        xytext=(-45, 60), 
+    #        textcoords='offset points',
+    #        arrowprops=dict(arrowstyle='-|>'),
+    #        fontsize=16)
+    
+    legend = ax.legend(loc='upper left', shadow=True, fontsize='medium')
+    plt.tight_layout(True)
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.title(title)
-    plt.legend()
+    
     plt.show()
 
 def get_most_recent_year_column_name(df):
@@ -91,38 +96,30 @@ def plot_individual_against_current(dfList, near):
         #f2.set_size_inches(20,10) # width, height
         #f2.set_dpi(80)
 
-        title = 'Individuals {0}-{1}'.format(near, pair[0])
+        title = '{0}-{1}'.format(near, pair[0])
 
         for i, c in enumerate(df.columns):
             if(i==0):
-                df[c].plot(ax=axes[0,0])
-                df[currYearColName].plot(ax=axes[0,0], color='black', lw=1.2)
+                df[c].plot(ax=axes[0,0], color='magenta', lw=1.2)
+                df[currYearColName].plot(ax=axes[0,0], color='black', lw=0.8)
                 axes[0,0].set_title('{0} {1}'.format(title,c))
-                axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+                axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=2))
                 axes[0,0].xaxis.set_minor_formatter(dates.DateFormatter('%b'))
                 axes[0,0].xaxis.set_major_locator(dates.YearLocator())
                 axes[0,0].xaxis.set_major_formatter(dates.DateFormatter(''))
-                axes[0,0].grid(b=True, which='major', color='w', linewidth=1.0)
-                axes[0,0].grid(b=True, which='minor', color='w', linewidth=0.5)
-                legend = axes[0,0].legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                                    fancybox=True, shadow=True)
-                frame = legend.get_frame()
-                frame.set_facecolor('white')
+                axes[0,0].grid(b=True, which='major', color='k', linewidth=0.5, linestyle='dotted')
+                axes[0,0].grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
             else:
                 axis = axes[math.floor(i/2),i%2]
-                df[c].plot(ax=axis)
-                df[currYearColName].plot(ax=axis, color='black', lw=1.2)
+                df[c].plot(ax=axis, color='magenta', lw=1.2)
+                df[currYearColName].plot(ax=axis, color='black', lw=0.8)
                 axis.set_title('{0} {1}'.format(title,c))
-                axis.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+                axis.xaxis.set_minor_locator(dates.MonthLocator(interval=2))
                 axis.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
                 axis.xaxis.set_major_locator(dates.YearLocator())
                 axis.xaxis.set_major_formatter(dates.DateFormatter(''))
-                axis.grid(b=True, which='major', color='w', linewidth=1.0)
-                axis.grid(b=True, which='minor', color='w', linewidth=0.5)
-                legend = axis.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                                    fancybox=True, shadow=True)
-                frame = legend.get_frame()
-                frame.set_facecolor('white')
+                axis.grid(b=True, which='major', color='k', linewidth=0.5, linestyle='dotted')
+                axis.grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
         
         f2.set_tight_layout(True)
         f2.suptitle = title
@@ -139,39 +136,85 @@ def plot_seasonal_boxplot(dataList, nearContract):
     x = sorted(list(utils.allMonths.values()))
     month = utils.months[nearContract[2]]
     rotatedMonths = x[month: ] + x[ :month]
-    print(rotatedMonths)
+    #print(rotatedMonths)
     idx = rotatedMonths.index(month)
-    print("index {0}".format(rotatedMonths.index(month)))
-    print([(x - (idx-1)) + len(rotatedMonths) for x in rotatedMonths])
+    #print("index {0}".format(rotatedMonths.index(month)))
+    #print([(x - (idx-1)) + len(rotatedMonths) for x in rotatedMonths])
     for listItems in dataList:
-        df = listItems[2]
-        cols = list(df.columns.values)
+        dfUnshifted = listItems[2]
+        cols = list(dfUnshifted.columns.values)
         
-        df['sum'] = df[cols].sum(axis=1)
-        df['count'] = df[cols].count(axis=1)
-        df['month'] = df.index.month
+        dfUnshifted['value'] = dfUnshifted[cols].sum(axis=1)
+        dfUnshifted['count'] = dfUnshifted[cols].count(axis=1)
+        dfUnshifted['month'] = dfUnshifted.index.month
         
+        month = dt.date.today().month
         
         
         #http://machinelearningmastery.com/time-series-data-visualization-with-python/
         #fig = plt.figure(1, figsize=(9, 6))
         # Create an axes instance
-        #ax = fig.add_subplot(3,1,i)
-        #i=i+1
+        #subplot = fig.add_subplot(1,1,1)
+        
 
         # Create the boxplot
         #bp = ax.boxplot(df['sum'],showfliers=True, sym='k.')
         #plt.ylim(ymin=-60, ymax=60)
-        #bp = sns.boxplot(df['sum'],ax=ax)
+        fig = plt.figure(i, figsize=(12,9))
         
+        
+        
+        subplot = fig.add_subplot(2,1,1)
+        ax = sns.boxplot(x='month', y='value', data=dfUnshifted)
+        
+        ax.axvspan(month - 0.5, month + 0.5, alpha=0.2, color='magenta')
+
         #print(df)
-        print(x[month:])
-        ax = df.boxplot(column=['sum'], by='month', showmeans=True, positions=rotatedMonths)
+        #print(x[month:])
+        #ax = df.boxplot(column=['sum'], by='month', showmeans=True, positions=rotatedMonths)
         # set your own proper title
         plt.title("{0}-{1}".format(nearContract, listItems[0]))
         # get rid of the automatic 'Boxplot grouped by group_by_column_name' title
         plt.suptitle("")
-        plt.show()
+
+        ax.grid(b=False, which='major', color='k', linewidth=0.5, linestyle='dotted')
+        ax.grid(b=False, which='minor', color='k', linewidth=0.5, linestyle='dotted')
+        
+        
+        mybox = ax.artists[month]
+
+        # Change the appearance of that box
+        mybox.set_facecolor('magenta')
+        mybox.set_edgecolor('black')
+        mybox.set_alpha(0.75)
+        mybox.set_linewidth(3)
+
+
+        sp2 = fig.add_subplot(2,1,2)
+        dfShifted = listItems[1]
+        
+        currYearColName = get_most_recent_year_column_name(dfShifted)
+        
+        sp2.plot(dfShifted[currYearColName], label='Curr', linewidth=1.5, color='black', markevery=100)
+        sp2.axvline(dfShifted[currYearColName].last_valid_index(), color='blue', linewidth=1.75)
+        sp2.axhline(dfShifted[currYearColName][dfShifted[currYearColName].last_valid_index()], color='blue', linewidth=1.75)
+
+            
+        # calculate the mean for all years (minus the current contract) and plot it
+        shiftedCols = [col for col in dfShifted.columns]
+        cols = [col for col in shiftedCols if col not in [currYearColName]]
+        dfShifted['mean'] = dfShifted[cols].mean(axis=1)
+    
+
+
+        sp2.plot(dfShifted['mean'], color='red', linestyle='dashed')
+        
+        period = dfShifted[(dfShifted.index.month >= month) & (dfShifted.index.month < month+1)].index
+        # Highlighting
+        sp2.axvspan(min(period), max(period), alpha=0.2, color='magenta')
+        
+        #sp2.axvspan(8, 14, alpha=0.5, color='red')
+        i = i+1
 
         #df['sum'].hist()
 
@@ -181,7 +224,7 @@ def plot_continual_spread_set(dataList, nearContract):
     j = 1
 
     for listItems in dataList:
-        print("Plotting {0}-{1}".format(nearContract, listItems[0]))
+       #print("Plotting {0}-{1}".format(nearContract, listItems[0]))
         farContractName = listItems[0]
         df = listItems[2]
         
@@ -189,7 +232,7 @@ def plot_continual_spread_set(dataList, nearContract):
         ax1 = figure.add_subplot(3,1,j)
         #ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) +
         #                   cycler('lw', [1, 2, 3, 4]))
-        ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=4))
+        ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=3))
         ax1.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
         ax1.xaxis.set_major_locator(dates.YearLocator())
         ax1.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
@@ -200,100 +243,138 @@ def plot_continual_spread_set(dataList, nearContract):
             # if we're looking at this year (current) contract, let's plot a thick/black line
             # with a vertical/horizontal crosshair to make it easy to look at
             if(col == '{0}'.format(get_most_recent_year_column_name(df))) :
-                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=2)
+                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label=col, color='black', lineWidth=1.5)
             # normal case is to display a thin line for historical years
             else :
-                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=0.5, linestyle='-')
-                
-        ax1.grid(b=True, which='major', color='w', linewidth=1.5)
-        ax1.grid(b=True, which='minor', color='w', linewidth=1.0)
-        # Shrink current axis by 20%
-        box = ax1.get_position()
-        ax1.set_position([box.x0, box.y0, box.width * 0.88, box.height])
+                ax1.plot(df[col].rolling(window=7, min_periods=7).mean(), label='{0}'.format(col), lineWidth=1.0)
+        
+        ax1.grid(b=True, which='major', color='k', linewidth=1.0, linestyle='dashed')
+        ax1.grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
 
-        # Put a legend to the top of the current axis
-        legend = ax1.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                            fancybox=True, shadow=True)
-        frame = legend.get_frame()
-        frame.set_facecolor('white')
-        ax1.set_title('Continuous {0} - {1}'.format(nearContract, farContractName))
-
+        ax1.set_title('{0} - {1}'.format(nearContract, farContractName))
+        plt.setp(ax1.get_xticklabels(), rotation=30, horizontalalignment='right')
 
         j+=1
 
     #plt.suptitle('{0} Data'.format(nearContract))
+    
     plt.tight_layout()
     plt.show()
 
+
+def plot_single_historical_subplot(subplot, df, near, far):
+    # These are the "Tableau 20" colors as RGB.    
+    tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),    
+                (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),    
+                (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),    
+                (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),    
+                (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]    
+    
+    # Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.    
+    for i in range(len(tableau20)):    
+        r, g, b = tableau20[i]    
+        tableau20[i] = (r / 255., g / 255., b / 255.) 
+    
+    subplot.set_prop_cycle(cycler('color', tableau20) + 
+        (4 * cycler('marker', ['^', 'H', 'p', 'v', '*'])))
+
+    ###########
+    # plot shifted data with the mean
+    ###########
+    shiftedCols = [col for col in df.columns]
+    
+    subplot.xaxis.set_major_locator(dates.MonthLocator(interval=1))
+    #subplot.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
+    subplot.xaxis.set_major_formatter(dates.DateFormatter('%b-01'))
+    
+    subplot.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[15], interval=1))
+    subplot.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
+    
+    #subplot.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
+    #subplot.xaxis.set_minor_formatter(dates.DateFormatter('|'))
+    
+    currYearColName = get_most_recent_year_column_name(df)
+    for i, c in enumerate(shiftedCols):
+        l = None
+        if(c == currYearColName):
+            subplot.plot(df[c], label=c, linewidth=1.5, color='black', markevery=100)
+            subplot.axvline(df[c].last_valid_index(), color='blue', linewidth=1.75)
+            subplot.axhline(df[c][df[c].last_valid_index()], color='blue', linewidth=1.75)
+            # annotate current date with arrow
+            #subplot.annotate(dt.date.today().strftime("%b %d"),
+            #     (df[c].last_valid_index(), df[c][df[c].last_valid_index()]),
+            #     xytext=(40, -40), 
+            #     textcoords='offset points',
+            #     arrowprops=dict(arrowstyle='-|>'),
+            #     fontsize=16)
+        else:
+            subplot.plot(df[c], label=c, linewidth=1, markevery=21)
+        
+    # calculate the mean for all years (minus the current contract) and plot it
+    cols = [col for col in shiftedCols if col not in [currYearColName]]
+    df['mean'] = df[cols].mean(axis=1)
+    
+    df['99per'] = df[cols].apply(lambda x: np.nanpercentile(x, 99), axis=1)
+    df['75per'] = df[cols].apply(lambda x: np.nanpercentile(x, 75), axis=1)
+    df['25per'] = df[cols].apply(lambda x: np.nanpercentile(x, 25), axis=1)
+    df['1per'] = df[cols].apply(lambda x: np.nanpercentile(x, 1), axis=1)
+    
+    subplot.fill_between(df.index, 
+        df['75per'].rolling(window=7, min_periods=7).mean(), 
+        df['25per'].rolling(window=7, min_periods=7).mean(), 
+        color='#FFF717',
+        alpha=0.5)
+
+    subplot.plot(df['mean'], color='red', linewidth=1.5, label='AVG', markevery=100, linestyle='dashed')
+    shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
+
+    # Shrink the x-axis and place the legend on the outside
+    # http://stackoverflow.com/a/4701285
+    box = subplot.get_position()
+    subplot.set_position([box.x0, box.y0, box.width * 0.95, box.height * 0.90])
+    legend = subplot.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
+                        fancybox=True, shadow=True, ncol=2)
+    frame = legend.get_frame()
+    frame.set_facecolor('white')
+
+    subplot.set_title('{0} - {1}'.format(near, far))
+    subplot.grid(b=True, which='major', color='k', linewidth=0.5, linestyle='dashed')
+    subplot.grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
+        
+    # rotate major tick labels to avoid overlapping
+    # http://stackoverflow.com/a/28063506
+    plt.setp(subplot.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #plt.subplots_adjust(hspace=0.3)    # this does not seem to work with ax.set_position() above - it causes that call to not be executed
+    
+    
+    
+def plot_single_historical_comparison(df, near, far):
+    plt.style.use('seaborn-colorblind')
+
+    f1 = plt.figure(num=1, figsize=(15, 5), dpi=80)
+    
+    subplot = f1.add_subplot(1,1,1)
+    plot_single_historical_subplot(subplot, df, near, far)
+    
+    plt.savefig('.\output\charts\{0}-{1}_Hist_{2}.png'.format(near, far, dt.date.today().strftime('%Y-%b-%d')))
+    
+    plt.show()
+
 def plot_historical_comparison(tupleList, near):
+    plt.style.use('seaborn-colorblind')
+    
     f1 = plt.figure(num=1, figsize=(15, 10), dpi=80)
     
     j = 1
-    
     for pair in tupleList:
-        print("Plotting {0}-{1}".format(near, pair[0]))
+        #print("Plotting {0}-{1}".format(near, pair[0]))
         farContractName = pair[0]
-
-        ###########
-        # plot shifted data with the mean
-        ###########
         df = pair[1]
 
-        shiftedCols = [col for col in df.columns]
-        
-        ax2 = f1.add_subplot(3,1,j)
-        ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))
-        #ax2.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x,pos: get_month_label(x)))
-        ax2.xaxis.set_major_formatter(dates.DateFormatter('%b-01'))
-        
-        ax2.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[14, 21], interval=1))
-        ax2.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
-        
-        #ax2.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
-        #ax2.xaxis.set_minor_formatter(dates.DateFormatter('|'))
-        
-        currYearColName = get_most_recent_year_column_name(df)
-        for i, c in enumerate(shiftedCols):
-            l = None
-            if(c == currYearColName):
-                ax2.plot(df[c], label=c, linewidth=2, color='black')
-                ax2.axvline(df[c].last_valid_index())
-                ax2.axhline(df[c][df[c].last_valid_index()])
-                ax2.annotate(dt.date.today().strftime("%b %d"),
-                     (df[c].last_valid_index(), df[c][df[c].last_valid_index()]),
-                     xytext=(40, -40), 
-                     textcoords='offset points',
-                     arrowprops=dict(arrowstyle='-|>'),
-                     fontsize=16)
-            else:
-                ax2.plot(df[c], label=c, linewidth=1)
-            
-        # calculate the mean for all years (minus the current contract) and plot it
-        cols = [col for col in shiftedCols if col not in [currYearColName]]
-        df['mean'] = df[cols].mean(axis=1)
-        
-        ax2.plot(df['mean'], color='red', linewidth=1.5, label='AVG')
-        shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
-
-        # Shrink the x-axis and place the legend on the outside
-        # http://stackoverflow.com/a/4701285
-        box = ax2.get_position()
-        ax2.set_position([box.x0, box.y0, box.width * 0.92, box.height * 0.90])
-        legend = ax2.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                            fancybox=True, shadow=True, ncol=2)
-        frame = legend.get_frame()
-        frame.set_facecolor('white')
-
-        ax2.set_title('Overlay {0} - {1}'.format(near, farContractName))
-        ax2.grid(b=True, which='major', color='w', linewidth=1.5)
-        ax2.grid(b=True, which='minor', color='w', linewidth=1.0)
-        
-        # rotate major tick labels to avoid overlapping
-        # http://stackoverflow.com/a/28063506
-        plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
-        #plt.subplots_adjust(hspace=0.3)    # this does not seem to work with ax.set_position() above - it causes that call to not be executed
+        subplot = f1.add_subplot(3,1,j)
+        plot_single_historical_subplot(subplot, df, near, farContractName)
 
         j+=1
     
-    plt.suptitle('Historic Data for {0}'.format(near))
+    plt.savefig('.\output\charts\{0}_Hist_{1}.png'.format(near, dt.date.today().strftime('%Y-%b-%d')))
     plt.show()

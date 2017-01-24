@@ -16,7 +16,7 @@ def get_active_years():
     thisYear = dt.date.today().year
     activeYears.append(thisYear)
     activeYears.append(thisYear + 1)
-    print(activeYears)
+    #print(activeYears)
     return activeYears
 
 
@@ -58,9 +58,9 @@ def calculate(near, historicalYears):
     
     far = ["LN{0}".format(item) for item in util.regularMonthSets[nearContractMonthLetter]]
 
-    print('{0} Start Date: {1}'.format(near, get_contract_start_date(nearContractMonthLetter, dt.date.today().year)))
-    print('{0} End Date: {1}'.format(near, get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
-    print('{0} Far Contracts: {1}'.format(near, far))
+    #print('{0} Start Date: {1}'.format(near, get_contract_start_date(nearContractMonthLetter, dt.date.today().year)))
+    #print('{0} End Date: {1}'.format(near, get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
+    #print('{0} Far Contracts: {1}'.format(near, far))
     
     df = dm.load_data()
 
@@ -75,8 +75,8 @@ def calculate(near, historicalYears):
 
     graphStartDte = get_contract_start_date(nearContractMonthLetter, dt.date.today().year)
     graphEndDte = get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)
-    print('Graph Start: {0}'.format(graphStartDte))
-    print('Graph End: {0}'.format(graphEndDte))
+    #print('Graph Start: {0}'.format(graphStartDte))
+    #print('Graph End: {0}'.format(graphEndDte))
     
     dfList = []  
     for farContractName in far :
@@ -86,7 +86,7 @@ def calculate(near, historicalYears):
         idxOriginal = pd.date_range(df.first_valid_index(), df.last_valid_index())
         dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
 
-        print('All years: {0}'.format(years))
+        #print('All years: {0}'.format(years))
         for year in years :
             
             colName = str(year)
@@ -96,13 +96,13 @@ def calculate(near, historicalYears):
             # if we are comparing a contract at the end of the year to one at the beginning of the year
             # we need to correct the year (b/c we're actually subtracting the next year's data)
             if (near in ['LNQ', 'LNV', 'LNZ']) and (farContractName in ['LNG', 'LNJ', 'LNK']) and (year <= dt.date.today().year) :
-                print("Far contract rollover detected, year changed to {0}".format(year))
+                #print("Far contract rollover detected, year changed to {0}".format(year))
                 farContractData = get_contract_data(df, farContractName, year + 1)
             else:
                 farContractData = get_contract_data(df, farContractName, year)
 
             if (nearContractData.empty) or (farContractData.empty):
-                print("Empty dataframe detected. Year: {0}".format(year))
+               #print("Empty dataframe detected. Year: {0}".format(year))
                 continue
 
             difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
@@ -116,7 +116,7 @@ def calculate(near, historicalYears):
             idx = pd.date_range(diffStartDte, diffEndDte)
             dfDiff = dfDiff.reindex(idx, fill_value=np.nan)
             if(dfDiff[colName].isnull().all()):
-                print("All values in range {0}-{1} for {2} are empty. Continuing".format(diffStartDte, diffEndDte, colName))
+                #print("All values in range {0}-{1} for {2} are empty. Continuing".format(diffStartDte, diffEndDte, colName))
                 continue
 
             #### Need to figure out the number of days between 
