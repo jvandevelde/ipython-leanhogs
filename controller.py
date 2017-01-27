@@ -58,10 +58,6 @@ def calculate(near, historicalYears):
     
     far = ["LN{0}".format(item) for item in util.regularMonthSets[nearContractMonthLetter]]
 
-    #print('{0} Start Date: {1}'.format(near, get_contract_start_date(nearContractMonthLetter, dt.date.today().year)))
-    #print('{0} End Date: {1}'.format(near, get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)))
-    #print('{0} Far Contracts: {1}'.format(near, far))
-    
     df = dm.load_data()
 
     # TODO: Create option to enable this
@@ -87,25 +83,25 @@ def calculate(near, historicalYears):
         dfDiffsOriginalDtes = pd.DataFrame(index=idxOriginal)
 
         #print('All years: {0}'.format(years))
-        for year in years :
+        for year in years:
             
             colName = str(year)
-            
             nearContractData = get_contract_data(df, near, year)
             
             # if we are comparing a contract at the end of the year to one at the beginning of the year
             # we need to correct the year (b/c we're actually subtracting the next year's data)
-            if (near in ['LNQ', 'LNV', 'LNZ']) and (farContractName in ['LNG', 'LNJ', 'LNK']) and (year <= dt.date.today().year) :
+            if (near in ['LNN', 'LNQ', 'LNV', 'LNZ']) and (farContractName in ['LNG', 'LNJ', 'LNK', 'LNM']) and (year <= dt.date.today().year) :
                 #print("Far contract rollover detected, year changed to {0}".format(year))
                 farContractData = get_contract_data(df, farContractName, year + 1)
             else:
                 farContractData = get_contract_data(df, farContractName, year)
 
             if (nearContractData.empty) or (farContractData.empty):
-               #print("Empty dataframe detected. Year: {0}".format(year))
+                #print("Empty dataframe detected. Year: {0}, Far: {1}".format(year, farContractName))
                 continue
 
             difference = nearContractData.subtract(other=farContractData, fill_value=np.nan)
+            
             difference.dropna(inplace=True)
             
             dfDiff = pd.DataFrame(difference, columns=[colName])
@@ -121,9 +117,14 @@ def calculate(near, historicalYears):
 
             #### Need to figure out the number of days between 
             #print(dfDiff)
-            daysToShift = (dfDiff.first_valid_index() - graphStartDte).days
+            
+            #daysToShift = (dfDiff.first_valid_index() - graphStartDte).days
+            daysToShift = (dt.datetime(year, graphStartDte.month, graphStartDte.day) - graphStartDte).days
+            #print("Year: {0}, Far: {1}, DiffStrtDte: {2}, graphStartDte: {3}, shift: {4}".format(year, farContractName, dfDiff.first_valid_index(), graphStartDte, daysToShift))
+
             ## Concat http://chrisalbon.com/python/pandas_join_merge_dataframe.html
             dfDiffsOriginalDtes = pd.concat([dfDiffsOriginalDtes, dfDiff], axis=1)
+            
             shifted = dfDiff.shift(-daysToShift, 'D')
             dfDiffsShifted = pd.concat([dfDiffsShifted, shifted], axis=1)
 
