@@ -229,7 +229,7 @@ def plot_continual_spread_set(dataList, nearContract):
         df = listItems[2]
         
 
-        ax1 = figure.add_subplot(3,1,j)
+        ax1 = figure.add_subplot(4,1,j)
         #ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) +
         #                   cycler('lw', [1, 2, 3, 4]))
         ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=3))
@@ -328,14 +328,19 @@ def plot_single_historical_subplot(subplot, df, near, far):
     subplot.plot(df['mean'], color='red', linewidth=1.5, label='AVG', markevery=100, linestyle='dashed')
     shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
 
-    # Shrink the x-axis and place the legend on the outside
-    # http://stackoverflow.com/a/4701285
-    box = subplot.get_position()
-    subplot.set_position([box.x0, box.y0, box.width * 0.95, box.height * 0.90])
-    legend = subplot.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
-                        fancybox=True, shadow=True, ncol=2)
+    
+    legend = subplot.legend(loc='lower left', ncol=2, frameon=True)
     frame = legend.get_frame()
     frame.set_facecolor('white')
+    # Shrink the x-axis and place the legend on the outside
+    # http://stackoverflow.com/a/4701285
+    
+    #box = subplot.get_position()
+    #subplot.set_position([box.x0, box.y0, box.width * 0.95, box.height * 0.90])
+    #legend = subplot.legend(frameon=True, loc='center left', bbox_to_anchor=(1,0.5),
+    #                    fancybox=True, shadow=True, ncol=2)
+    #frame = legend.get_frame()
+    #frame.set_facecolor('white')
 
     subplot.set_title('{0} - {1}'.format(near, far))
     subplot.grid(b=True, which='major', color='k', linewidth=0.5, linestyle='dashed')
@@ -351,11 +356,12 @@ def plot_single_historical_subplot(subplot, df, near, far):
 def plot_single_historical_comparison(df, near, far):
     plt.style.use('seaborn-colorblind')
 
-    f1 = plt.figure(num=1, figsize=(15, 5), dpi=80)
+    f1 = plt.figure(num=1, figsize=(14, 9), dpi=80)
     
     subplot = f1.add_subplot(1,1,1)
     plot_single_historical_subplot(subplot, df, near, far)
     
+    plt.tight_layout()
     plt.savefig('.\output\charts\{0}-{1}_Hist_{2}.png'.format(near, far, dt.date.today().strftime('%Y-%b-%d')))
     
     plt.show()
@@ -363,7 +369,7 @@ def plot_single_historical_comparison(df, near, far):
 def plot_historical_comparison(tupleList, near):
     plt.style.use('seaborn-colorblind')
     
-    f1 = plt.figure(num=1, figsize=(15, 10), dpi=80)
+    f1 = plt.figure(num=1, figsize=(12, 8.2), dpi=80)
     
     j = 1
     for pair in tupleList:
@@ -371,10 +377,11 @@ def plot_historical_comparison(tupleList, near):
         farContractName = pair[0]
         df = pair[1]
 
-        subplot = f1.add_subplot(3,1,j)
+        subplot = f1.add_subplot(4,1,j)
         plot_single_historical_subplot(subplot, df, near, farContractName)
 
         j+=1
     
+    plt.tight_layout()
     plt.savefig('.\output\charts\{0}_Hist_{1}.png'.format(near, dt.date.today().strftime('%Y-%b-%d')))
     plt.show()
