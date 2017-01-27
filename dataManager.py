@@ -14,13 +14,13 @@ last_year = curr_year - 1
 all_months = list(util.months.keys())
 
 hist_data_filename = "data.hist.pickle"
-hist_years = range(2000, curr_year)
+hist_years = range(1998, curr_year)
 
 data_filename = "data.pickle"
 threshold = dt.timedelta(days=1)
 curr_years = range(curr_year, curr_year + 2) # range(stop) param is not inclusive
 
-all_years = range(2011, dt.date.today().year + 2) 
+#all_years = range(2011, dt.date.today().year + 2) 
 
 
 def load_data():
