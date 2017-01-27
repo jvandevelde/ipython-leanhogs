@@ -20,9 +20,6 @@ data_filename = "data.pickle"
 threshold = dt.timedelta(days=1)
 curr_years = range(curr_year, curr_year + 2) # range(stop) param is not inclusive
 
-#all_years = range(2011, dt.date.today().year + 2) 
-
-
 def load_data():
     contract_df = pd.DataFrame()
     
@@ -85,13 +82,12 @@ def get_leanhog_contract_data(years):
             recordList.append(s)
             t = "CME.LN{0}{1} - Settle".format(month, year)
             tx = "LN{0}{1}".format(month, year)
-            # May contracts didn't start until 2008'
+            # May contracts didn't start until 2008
             if not ((month == 'K') and (year < 2008)): 
                 columnList.append(t)
                 columnRenameDict.update({t:tx})
 
-    df = q.get(recordList,
-           authtoken="dXzByDoZicZy-WFvPyTf")
+    df = q.get(recordList, authtoken="dXzByDoZicZy-WFvPyTf")
     
     # take out any of the columns that Quandl didn't return that were expected
     # possibly a contract year that hasn't started
