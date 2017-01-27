@@ -34,6 +34,7 @@ def start(custSeriesDef):
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
+        print(multi_yr_sel.value)
         dfDisplay = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far][0]
         lhdata.plot_single_historical_comparison(dfDisplay, near, far)
 
@@ -109,7 +110,7 @@ def start(custSeriesDef):
     newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
 
     multi_yr_sel = widgets.SelectMultiple(
-        options=list(range(2000, dt.datetime.today().year + 1)),
+        options=list(range(1998, dt.datetime.today().year + 1)),
         value=list(range(dt.datetime.today().year - 4, dt.datetime.today().year + 1)),
         width='100px')
     multi_yr_sel.layout.height = '250px'
