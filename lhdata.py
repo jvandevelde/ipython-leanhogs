@@ -348,20 +348,17 @@ def plot_continual_spread_set(dataList, nearContract, selected_far_contracts):
 
 
 def plot_single_historical_subplot(subplot, df, near, far):
-    # These are the "Tableau 20" colors as RGB.    
-    tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),    
-                (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),    
-                (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),    
-                (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),    
-                (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]    
+    #https://xkcd.com/color/rgb/
+    xkcd20 = ["windows blue", "amber", "ruby", "reddy brown", "carnation", 
+                "spruce", "cool green", "swamp", "dusk blue", "indian red",
+                "purple/blue", "petrol", "royal", "tan brown", "lightish red"]
+    sns.set_palette(sns.xkcd_palette(xkcd20))
     
-    # Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.    
-    for i in range(len(tableau20)):    
-        r, g, b = tableau20[i]    
-        tableau20[i] = (r / 255., g / 255., b / 255.) 
-    
-    subplot.set_prop_cycle(cycler('color', tableau20) + 
-        (4 * cycler('marker', ['^', 'H', 'p', 'v', '*'])))
+    # show the color palette
+    #sns.palplot(sns.color_palette())
+
+    subplot.set_prop_cycle(cycler('color', sns.color_palette()) +
+        (3 * cycler('marker', ['^', 'H', 'p', 'v', '*'])))
 
     ###########
     # plot shifted data with the mean
