@@ -25,8 +25,11 @@ def start(custSeriesDef):
     def on_click_historical_popout(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
+        sel_far_contracts = list(multi_far_contract_sel.value)
+        if(len(sel_far_contracts) == 0):
+            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_historical_comparison(dfList, near)
+        lhdata.plot_historical_comparison(dfList, near, sel_far_contracts)
 
     # historical comparison - single far contract
     def on_click_single_historical_popout(b):
@@ -34,7 +37,6 @@ def start(custSeriesDef):
         near = 'LN{0}'.format(near_month_dropdown.value)
         far = 'LN{0}'.format(far_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        print(multi_yr_sel.value)
         dfDisplay = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far][0]
         lhdata.plot_single_historical_comparison(dfDisplay, near, far)
 
@@ -43,25 +45,37 @@ def start(custSeriesDef):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_individual_against_current(dfList, near)
+        sel_far_contracts = list(multi_far_contract_sel.value)
+        if(len(sel_far_contracts) == 0):
+            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+        lhdata.plot_individual_against_current(dfList, near, sel_far_contracts)
 
     def on_click_historical_cont_popout(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_continual_spread_set(dfList, near)
+        sel_far_contracts = list(multi_far_contract_sel.value)
+        if(len(sel_far_contracts) == 0):
+            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+        lhdata.plot_continual_spread_set(dfList, near, sel_far_contracts)
         
     def on_click_monthly_historical_boxplot(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_monthly_seasonal_boxplot(dfList, near)
+        sel_far_contracts = list(multi_far_contract_sel.value)
+        if(len(sel_far_contracts) == 0):
+            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+        lhdata.plot_monthly_seasonal_boxplot(dfList, near, sel_far_contracts)
        
     def on_click_weekly_historical_boxplot(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_weekly_seasonal_boxplot(dfList, near)
+        sel_far_contracts = list(multi_far_contract_sel.value)
+        if(len(sel_far_contracts) == 0):
+            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+        lhdata.plot_weekly_seasonal_boxplot(dfList, near, sel_far_contracts)
 
     def on_click_historical_interactive(b):
         clear_output()
@@ -112,6 +126,8 @@ def start(custSeriesDef):
     def on_near_month_dropdown_change(name, old, new):
         far_month_dropdown.options = util.regularMonthSets[new]
         far_month_dropdown.value = far_month_dropdown.options[0]
+        multi_far_contract_sel.options = util.regularMonthSets[near_month_dropdown.value]
+        multi_far_contract_sel.value = util.regularMonthSets[near_month_dropdown.value]
 
     newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
 
@@ -123,8 +139,8 @@ def start(custSeriesDef):
 
 
     gen_hist_popout_btn = widgets.Button(
-        description='#1 - 4x Hist. Comparison',
-        tooltip='Historical Comparison with 3 far contracts shown',
+        description='#1 - Hist. Comparison',
+        tooltip='Historical Comparison for all far contracts selected',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
@@ -197,6 +213,13 @@ def start(custSeriesDef):
 
     near_month_dropdown = widgets.Dropdown(options=newMonths, width='120px', height='30px')
     near_month_dropdown.on_trait_change(on_near_month_dropdown_change, 'value')
+    
+    multi_far_contract_sel = widgets.SelectMultiple(
+        options=util.regularMonthSets[near_month_dropdown.value],
+        value=util.regularMonthSets[near_month_dropdown.value],
+        width='220px')
+    multi_far_contract_sel.layout.height = '90px'
+
 
     dd_cont1 = widgets.HBox(children=[widgets.Label('Near Contract:'), 
         near_month_dropdown])
@@ -206,11 +229,13 @@ def start(custSeriesDef):
     dd_cont2 = widgets.HBox(children=[widgets.Label('Far Contract:'), 
        far_month_dropdown])
     
-    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_monthly_boxplot_popout_btn, gen_hist_weekly_boxplot_popout_btn, gen_indvidual_popout_btn]
+    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_monthly_boxplot_popout_btn, gen_hist_weekly_boxplot_popout_btn, gen_indvidual_popout_btn, multi_far_contract_sel]
     btns2 = [dd_cont2, gen_single_hist_popout_btn, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
+    
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=btns1)
     v_col3 = widgets.VBox(children=btns2)
+    
     h_cont = widgets.HBox(children=[v_col1, v_col2, v_col3])
 
     # display the arranged controls

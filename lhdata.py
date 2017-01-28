@@ -79,10 +79,13 @@ def get_most_recent_year_column_name(df):
 
     return currYearColName
 
-def plot_individual_against_current(dfList, near):
+def plot_individual_against_current(dfList, near, selected_far_contracts):
     for pair in dfList:
+        farContractName = pair[0]
+        if(farContractName[2] not in selected_far_contracts):
+            continue
+        
         df = pair[1]
-
         dfCleaned = pd.DataFrame(df)
         df = dfCleaned.dropna(thresh=1)
         currYearColName = get_most_recent_year_column_name(df)
@@ -90,11 +93,7 @@ def plot_individual_against_current(dfList, near):
         #http://stackoverflow.com/questions/14888473/python-pandas-dataframe-subplot-in-columns-and-rows
         #http://stackoverflow.com/questions/14770735/changing-figure-size-with-subplots
         f2, axes = plt.subplots(ncols=2, nrows=math.ceil(df.columns.size/2), figsize=(20,10), dpi=80)
-        
-        #f2.set_size_inches(20,10) # width, height
-        #f2.set_dpi(80)
-
-        title = '{0}-{1}'.format(near, pair[0])
+        title = '{0} - {1}'.format(near, farContractName)
 
         for i, c in enumerate(df.columns):
             if(i==0):
@@ -128,10 +127,9 @@ def get_month_label(x, pos=None):
     x = dates.num2date(x)
     return x.strftime('%b-01')[0]
 
-def plot_monthly_seasonal_boxplot(dataList, nearContract):
+def plot_monthly_seasonal_boxplot(dataList, nearContract, selected_far_contracts):
     #pd.options.display.mpl_style = 'default'
     
-    i = 1
     x = sorted(list(utils.allMonths.values()))
     month = utils.months[nearContract[2]]
     rotatedMonths = x[month: ] + x[ :month]
@@ -139,7 +137,13 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract):
     idx = rotatedMonths.index(month)
     #print("index {0}".format(rotatedMonths.index(month)))
     #print([(x - (idx-1)) + len(rotatedMonths) for x in rotatedMonths])
+
+    i = 1
     for listItems in dataList:
+        farContractName = listItems[0]
+        if(farContractName[2] not in selected_far_contracts):
+            continue
+        
         dfUnshifted = listItems[2]
         cols = list(dfUnshifted.columns.values)
         
@@ -155,8 +159,8 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract):
         subplot = fig.add_subplot(2,1,1)
         ax = sns.boxplot(x='month', y='value', data=dfUnshifted, showfliers=False, color=None, hue=None)
         #ax = sns.swarmplot(x="month", y="value", data=dfUnshifted, color=".25")
+        
         for j in range(1,13):
-            print(j)
             y = dfUnshifted.value[dfUnshifted.month == j].dropna()
             # Add some random "jitter" to the x-axis
             x = np.random.normal(j, 0.04, size=len(y))
@@ -210,11 +214,15 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract):
     
     plt.show()
 
-def plot_weekly_seasonal_boxplot(dataList, nearContract):
+def plot_weekly_seasonal_boxplot(dataList, nearContract, selected_far_contracts):
     #pd.options.display.mpl_style = 'default'
+    
     i = 1
-
     for listItems in dataList:
+        farContractName = listItems[0]
+        if(farContractName[2] not in selected_far_contracts):
+            continue
+
         dfUnshifted = listItems[2]
         cols = list(dfUnshifted.columns.values)
         
@@ -294,7 +302,7 @@ def plot_weekly_seasonal_boxplot(dataList, nearContract):
     
     plt.show()
 
-def plot_continual_spread_set(dataList, nearContract):
+def plot_continual_spread_set(dataList, nearContract, selected_far_contracts):
     figure = plt.figure(num=1, figsize=(15,10), dpi=80)
     j = 1
 
@@ -303,8 +311,10 @@ def plot_continual_spread_set(dataList, nearContract):
         farContractName = listItems[0]
         df = listItems[2]
         
+        if(farContractName[2] not in selected_far_contracts):
+            continue
 
-        ax1 = figure.add_subplot(4,1,j)
+        ax1 = figure.add_subplot(len(selected_far_contracts),1,j)
         #ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) +
         #                   cycler('lw', [1, 2, 3, 4]))
         ax1.xaxis.set_minor_locator(dates.MonthLocator(interval=3))
@@ -432,18 +442,21 @@ def plot_single_historical_comparison(df, near, far):
     
     plt.show()
 
-def plot_historical_comparison(tupleList, near):
+def plot_historical_comparison(tupleList, near, selected_far_contracts):
     plt.style.use('seaborn-colorblind')
     
     f1 = plt.figure(num=1, figsize=(12, 8.2), dpi=80)
     
     j = 1
     for pair in tupleList:
-        #print("Plotting {0}-{1}".format(near, pair[0]))
         farContractName = pair[0]
+
+        if(farContractName[2] not in selected_far_contracts):
+            continue
+
         df = pair[1]
 
-        subplot = f1.add_subplot(4,1,j)
+        subplot = f1.add_subplot(len(selected_far_contracts),1,j)
         plot_single_historical_subplot(subplot, df, near, farContractName)
 
         j+=1
