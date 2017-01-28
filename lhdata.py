@@ -64,8 +64,8 @@ def plot_custom_historical_series(srcDf, pltMap, title):
     #        arrowprops=dict(arrowstyle='-|>'),
     #        fontsize=16)
     
-    legend = ax.legend(loc='upper left', shadow=True, fontsize='medium')
-    plt.tight_layout(True)
+    legend = ax.legend(loc='lower left', frameon=True, shadow=True)
+
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.title(title)
     
@@ -80,8 +80,6 @@ def get_most_recent_year_column_name(df):
     return currYearColName
 
 def plot_individual_against_current(dfList, near):
-    
-    
     for pair in dfList:
         df = pair[1]
 
@@ -100,8 +98,8 @@ def plot_individual_against_current(dfList, near):
 
         for i, c in enumerate(df.columns):
             if(i==0):
-                df[c].plot(ax=axes[0,0], color='magenta', lw=1.2)
-                df[currYearColName].plot(ax=axes[0,0], color='black', lw=0.8)
+                df[c].plot(ax=axes[0,0], color='magenta', lw=1.0)
+                df[currYearColName].plot(ax=axes[0,0], color='black', lw=1.8)
                 axes[0,0].set_title('{0} {1}'.format(title,c))
                 axes[0,0].xaxis.set_minor_locator(dates.MonthLocator(interval=2))
                 axes[0,0].xaxis.set_minor_formatter(dates.DateFormatter('%b'))
@@ -111,8 +109,8 @@ def plot_individual_against_current(dfList, near):
                 axes[0,0].grid(b=True, which='minor', color='k', linewidth=0.5, linestyle='dotted')
             else:
                 axis = axes[math.floor(i/2),i%2]
-                df[c].plot(ax=axis, color='magenta', lw=1.2)
-                df[currYearColName].plot(ax=axis, color='black', lw=0.8)
+                df[c].plot(ax=axis, color='magenta', lw=1.0)
+                df[currYearColName].plot(ax=axis, color='black', lw=1.8)
                 axis.set_title('{0} {1}'.format(title,c))
                 axis.xaxis.set_minor_locator(dates.MonthLocator(interval=2))
                 axis.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
@@ -130,8 +128,9 @@ def get_month_label(x, pos=None):
     x = dates.num2date(x)
     return x.strftime('%b-01')[0]
 
-def plot_seasonal_boxplot(dataList, nearContract):
+def plot_monthly_seasonal_boxplot(dataList, nearContract):
     #pd.options.display.mpl_style = 'default'
+    
     i = 1
     x = sorted(list(utils.allMonths.values()))
     month = utils.months[nearContract[2]]
@@ -147,31 +146,24 @@ def plot_seasonal_boxplot(dataList, nearContract):
         dfUnshifted['value'] = dfUnshifted[cols].sum(axis=1)
         dfUnshifted['count'] = dfUnshifted[cols].count(axis=1)
         dfUnshifted['month'] = dfUnshifted.index.month
-        
         month = dt.date.today().month
-        
-        
+
         #http://machinelearningmastery.com/time-series-data-visualization-with-python/
-        #fig = plt.figure(1, figsize=(9, 6))
-        # Create an axes instance
-        #subplot = fig.add_subplot(1,1,1)
-        
 
-        # Create the boxplot
-        #bp = ax.boxplot(df['sum'],showfliers=True, sym='k.')
-        #plt.ylim(ymin=-60, ymax=60)
         fig = plt.figure(i, figsize=(12,9))
-        
-        
-        
-        subplot = fig.add_subplot(2,1,1)
-        ax = sns.boxplot(x='month', y='value', data=dfUnshifted)
-        
-        ax.axvspan(month - 0.5, month + 0.5, alpha=0.2, color='magenta')
 
-        #print(df)
-        #print(x[month:])
-        #ax = df.boxplot(column=['sum'], by='month', showmeans=True, positions=rotatedMonths)
+        subplot = fig.add_subplot(2,1,1)
+        ax = sns.boxplot(x='month', y='value', data=dfUnshifted, showfliers=False, color=None, hue=None)
+        #ax = sns.swarmplot(x="month", y="value", data=dfUnshifted, color=".25")
+        for j in range(1,13):
+            print(j)
+            y = dfUnshifted.value[dfUnshifted.month == j].dropna()
+            # Add some random "jitter" to the x-axis
+            x = np.random.normal(j, 0.04, size=len(y))
+            ax.plot(x-1, y, 'r.', alpha=0.2)
+
+        ax.axvspan(month - 0.5, month + 0.5, alpha=0.75, color='#DEE2E3')
+
         # set your own proper title
         plt.title("{0}-{1}".format(nearContract, listItems[0]))
         # get rid of the automatic 'Boxplot grouped by group_by_column_name' title
@@ -180,15 +172,18 @@ def plot_seasonal_boxplot(dataList, nearContract):
         ax.grid(b=False, which='major', color='k', linewidth=0.5, linestyle='dotted')
         ax.grid(b=False, which='minor', color='k', linewidth=0.5, linestyle='dotted')
         
-        
+        for j in range(0,12):
+            mybox = ax.artists[j]
+            # Change the appearance of that box
+            mybox.set_facecolor('white')    
+
         mybox = ax.artists[month]
 
         # Change the appearance of that box
-        mybox.set_facecolor('magenta')
+        mybox.set_facecolor('white')
         mybox.set_edgecolor('black')
         mybox.set_alpha(0.75)
-        mybox.set_linewidth(3)
-
+        mybox.set_linewidth(2)
 
         sp2 = fig.add_subplot(2,1,2)
         dfShifted = listItems[1]
@@ -198,26 +193,106 @@ def plot_seasonal_boxplot(dataList, nearContract):
         sp2.plot(dfShifted[currYearColName], label='Curr', linewidth=1.5, color='black', markevery=100)
         sp2.axvline(dfShifted[currYearColName].last_valid_index(), color='blue', linewidth=1.75)
         sp2.axhline(dfShifted[currYearColName][dfShifted[currYearColName].last_valid_index()], color='blue', linewidth=1.75)
-
-            
+        
         # calculate the mean for all years (minus the current contract) and plot it
         shiftedCols = [col for col in dfShifted.columns]
         cols = [col for col in shiftedCols if col not in [currYearColName]]
         dfShifted['mean'] = dfShifted[cols].mean(axis=1)
     
+        sp2.plot(dfShifted['mean'], color='red', linestyle='dashed')
+        
+        # Highlighting
+        period = dfShifted[(dfShifted.index.month >= month) & (dfShifted.index.month < month+1)].index
+        sp2.axvspan(min(period), max(period), alpha=0.75, color='#DEE2E3')
 
+        i = i+1
+        fig.set_tight_layout(True)
+    
+    plt.show()
+
+def plot_weekly_seasonal_boxplot(dataList, nearContract):
+    #pd.options.display.mpl_style = 'default'
+    i = 1
+
+    for listItems in dataList:
+        dfUnshifted = listItems[2]
+        cols = list(dfUnshifted.columns.values)
+        
+        dfUnshifted['value'] = dfUnshifted[cols].sum(axis=1)
+        dfUnshifted['count'] = dfUnshifted[cols].count(axis=1)
+        dfUnshifted['wk'] = dfUnshifted.index.weekofyear
+
+        #https://docs.python.org/3/library/datetime.html#datetime.date.isocalendar
+        # Returns 3 tuple with ISO year, wk, wkday
+        isoDate = dt.date.today().isocalendar()
+        week = isoDate[1]
+
+        #http://machinelearningmastery.com/time-series-data-visualization-with-python/
+
+        fig = plt.figure(i, figsize=(12,9))
+
+        subplot = fig.add_subplot(2,1,1)
+        ax = sns.boxplot(x='wk', y='value', data=dfUnshifted, showfliers=False, color=None, hue=None)
+        #ax = sns.swarmplot(x="month", y="value", data=dfUnshifted, color=".25")
+        
+        for j in range(1,54):
+            
+            y = dfUnshifted.value[dfUnshifted.wk == j].dropna()
+            # Add some random "jitter" to the x-axis
+            x = np.random.normal(j, 0.04, size=len(y))
+            ax.plot(x-1, y, 'r.', alpha=0.2)
+
+        # subtract 1 to line up with x-axis that starts at 0, not 1
+        ax.axvspan((week -1) - 0.5, (week - 1) + 0.5, alpha=0.75, color='#DEE2E3')
+
+        plt.title("{0}-{1}".format(nearContract, listItems[0]))
+        # get rid of the automatic 'Boxplot grouped by group_by_column_name' title
+        plt.suptitle("")
+
+        ax.grid(b=False, which='major', color='k', linewidth=0.5, linestyle='dotted')
+        ax.grid(b=False, which='minor', color='k', linewidth=0.5, linestyle='dotted')
+        
+        for j in range(0,53):
+            mybox = ax.artists[j]
+
+            # Change the appearance of that box
+            mybox.set_facecolor('white')    
+
+        mybox = ax.artists[week-1]
+
+        # Change the appearance of that box
+        mybox.set_facecolor('white')
+        mybox.set_edgecolor('black')
+        mybox.set_alpha(0.75)
+        mybox.set_linewidth(2)
+
+        sp2 = fig.add_subplot(2,1,2)
+        dfShifted = listItems[1]
+        
+        currYearColName = get_most_recent_year_column_name(dfShifted)
+        
+        sp2.plot(dfShifted[currYearColName], label='Curr', linewidth=1.5, color='black', markevery=100)
+        sp2.axvline(dfShifted[currYearColName].last_valid_index(), color='blue', linewidth=1.75)
+        sp2.axhline(dfShifted[currYearColName][dfShifted[currYearColName].last_valid_index()], color='blue', linewidth=1.75)
+ 
+        # calculate the mean for all years (minus the current contract) and plot it
+        shiftedCols = [col for col in dfShifted.columns]
+        cols = [col for col in shiftedCols if col not in [currYearColName]]
+        dfShifted['mean'] = dfShifted[cols].mean(axis=1)
 
         sp2.plot(dfShifted['mean'], color='red', linestyle='dashed')
         
-        period = dfShifted[(dfShifted.index.month >= month) & (dfShifted.index.month < month+1)].index
         # Highlighting
-        sp2.axvspan(min(period), max(period), alpha=0.2, color='magenta')
+        period = utils.iso_to_gregorian(isoDate[0], isoDate[1], isoDate[2])
+        range_start = utils.add_years(dt.date.today() - dt.timedelta(days=isoDate[2]), -1)
+        range_end = range_start + dt.timedelta(days=7)
+        sp2.axvspan(range_start, range_end, alpha=0.75, color='#DEE2E3')
         
-        #sp2.axvspan(8, 14, alpha=0.5, color='red')
         i = i+1
-
-        #df['sum'].hist()
-
+    
+        fig.set_tight_layout(True)
+    
+    plt.show()
 
 def plot_continual_spread_set(dataList, nearContract):
     figure = plt.figure(num=1, figsize=(15,10), dpi=80)
@@ -290,25 +365,15 @@ def plot_single_historical_subplot(subplot, df, near, far):
     subplot.xaxis.set_minor_locator(dates.DayLocator(bymonthday=[15], interval=1))
     subplot.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
     
-    #subplot.xaxis.set_minor_locator(dates.WeekdayLocator(byweekday=dates.FRIDAY))
-    #subplot.xaxis.set_minor_formatter(dates.DateFormatter('|'))
-    
     currYearColName = get_most_recent_year_column_name(df)
     for i, c in enumerate(shiftedCols):
         l = None
         if(c == currYearColName):
-            subplot.plot(df[c], label=c, linewidth=1.5, color='black', markevery=100)
+            subplot.plot(df[c], label=c, linewidth=2.5, color='black', markevery=100)
             subplot.axvline(df[c].last_valid_index(), color='blue', linewidth=1.75)
             subplot.axhline(df[c][df[c].last_valid_index()], color='blue', linewidth=1.75)
-            # annotate current date with arrow
-            #subplot.annotate(dt.date.today().strftime("%b %d"),
-            #     (df[c].last_valid_index(), df[c][df[c].last_valid_index()]),
-            #     xytext=(40, -40), 
-            #     textcoords='offset points',
-            #     arrowprops=dict(arrowstyle='-|>'),
-            #     fontsize=16)
         else:
-            subplot.plot(df[c], label=c, linewidth=1, markevery=21)
+            subplot.plot(df[c], label=c, linewidth=1, markevery=14+(2*i))
         
     # calculate the mean for all years (minus the current contract) and plot it
     cols = [col for col in shiftedCols if col not in [currYearColName]]
@@ -320,12 +385,13 @@ def plot_single_historical_subplot(subplot, df, near, far):
     df['1per'] = df[cols].apply(lambda x: np.nanpercentile(x, 1), axis=1)
     
     subplot.fill_between(df.index, 
-        df['75per'].rolling(window=7, min_periods=7).mean(), 
-        df['25per'].rolling(window=7, min_periods=7).mean(), 
-        color='#FFF717',
-        alpha=0.5)
+        df['75per'].rolling(window=1, min_periods=1).mean(), 
+        df['25per'].rolling(window=1, min_periods=1).mean(), 
+        #color='#FFF717',
+        color='#DEE2E3',
+        alpha=0.65)
 
-    subplot.plot(df['mean'], color='red', linewidth=1.5, label='AVG', markevery=100, linestyle='dashed')
+    subplot.plot(df['mean'], color='red', linewidth=2.5, label='AVG', markevery=100, linestyle='dashed')
     shiftedCols = [col for col in df.columns if col.startswith('orig_') == False]
 
     

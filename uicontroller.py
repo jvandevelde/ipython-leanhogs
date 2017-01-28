@@ -51,11 +51,17 @@ def start(custSeriesDef):
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         lhdata.plot_continual_spread_set(dfList, near)
         
-    def on_click_historical_boxplot(b):
+    def on_click_monthly_historical_boxplot(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
-        lhdata.plot_seasonal_boxplot(dfList, near)
+        lhdata.plot_monthly_seasonal_boxplot(dfList, near)
+       
+    def on_click_weekly_historical_boxplot(b):
+        clear_output()
+        near = 'LN{0}'.format(near_month_dropdown.value)
+        dfList = controller.calculate(near, list(multi_yr_sel.value))
+        lhdata.plot_weekly_seasonal_boxplot(dfList, near)
 
     def on_click_historical_interactive(b):
         clear_output()
@@ -117,7 +123,7 @@ def start(custSeriesDef):
 
 
     gen_hist_popout_btn = widgets.Button(
-        description='#1 - 3x Hist. Comparison',
+        description='#1 - 4x Hist. Comparison',
         tooltip='Historical Comparison with 3 far contracts shown',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
@@ -127,8 +133,8 @@ def start(custSeriesDef):
     gen_single_hist_popout_btn = widgets.Button(
         description='#2 - 1x Hist. Comparison',
         tooltip='Historical Comparison with only 1 far contract shown',
-        width='220px',
-        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        width='250px',
+        button_style='warning', #'success', 'info', 'warning', 'danger' or ''
         )
     gen_single_hist_popout_btn.on_click(on_click_single_historical_popout)
 
@@ -140,16 +146,24 @@ def start(custSeriesDef):
         )
     gen_hist_cont_popout_btn.on_click(on_click_historical_cont_popout)
 
-    gen_hist_boxplot_popout_btn = widgets.Button(
-        description='#4 - Monthly Boxplot Stats',
+    gen_hist_monthly_boxplot_popout_btn = widgets.Button(
+        description='#5 - Monthly Boxplot Stats',
         tooltip='Show monthly stats for selected years',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
         )
-    gen_hist_boxplot_popout_btn.on_click(on_click_historical_boxplot)
+    gen_hist_monthly_boxplot_popout_btn.on_click(on_click_monthly_historical_boxplot)
+
+    gen_hist_weekly_boxplot_popout_btn = widgets.Button(
+        description='#7 - Weekly Boxplot Stats',
+        tooltip='Show weekly stats for selected years',
+        width='220px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        )
+    gen_hist_weekly_boxplot_popout_btn.on_click(on_click_weekly_historical_boxplot)
 
     gen_indvidual_popout_btn = widgets.Button(
-        description='#5 - Individuals',
+        description='#9 - Individuals',
         tooltip='Show each year and contract in it''s own plot',
         width='220px',
         button_style='success', #'success', 'info', 'warning', 'danger' or ''
@@ -157,7 +171,7 @@ def start(custSeriesDef):
     gen_indvidual_popout_btn.on_click(on_click_individual_popout)
 
     gen_custom_series_btn = widgets.Button(
-        description='#6 - Custom series',
+        description='#4 - Custom series',
         tooltip='Compare the mean of each entered custom series against each other',
         width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
@@ -165,7 +179,7 @@ def start(custSeriesDef):
     gen_custom_series_btn.on_click(on_click_gen_custom_series)
 
     gen_custom_int_series_btn = widgets.Button(
-        description='#7 - Custom series (Interactive)',
+        description='#6 - Custom series (Interactive)',
         tooltip='Compare custom series',
         width='250px',
         button_style='warning' #'success', 'info', 'warning', 'danger' or ''
@@ -192,8 +206,8 @@ def start(custSeriesDef):
     dd_cont2 = widgets.HBox(children=[widgets.Label('Far Contract:'), 
        far_month_dropdown])
     
-    btns1 = [dd_cont1, gen_hist_popout_btn, gen_single_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_boxplot_popout_btn, gen_indvidual_popout_btn]
-    btns2 = [dd_cont2, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
+    btns1 = [dd_cont1, gen_hist_popout_btn, gen_hist_cont_popout_btn, gen_hist_monthly_boxplot_popout_btn, gen_hist_weekly_boxplot_popout_btn, gen_indvidual_popout_btn]
+    btns2 = [dd_cont2, gen_single_hist_popout_btn, gen_custom_series_btn, gen_custom_int_series_btn, gen_hist_interactive_btn]
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=btns1)
     v_col3 = widgets.VBox(children=btns2)
