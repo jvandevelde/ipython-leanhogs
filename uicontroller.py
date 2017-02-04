@@ -124,12 +124,18 @@ def start(custSeriesDef):
         #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
     def on_near_month_dropdown_change(name, old, new):
-        far_month_dropdown.options = util.regularMonthSets[new]
+        new_far_contracts = util.regularMonthSets[new]
+        print(new_far_contracts)
+        far_month_dropdown.options = new_far_contracts
         far_month_dropdown.value = far_month_dropdown.options[0]
-        multi_far_contract_sel.options = util.regularMonthSets[near_month_dropdown.value]
-        multi_far_contract_sel.value = util.regularMonthSets[near_month_dropdown.value]
+        
+        
+        multi_far_contract_sel.options = []
+        multi_far_contract_sel.options = new_far_contracts
+        
+        multi_far_contract_sel.value = util.regularMonthSets[new]
 
-    newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
+    
 
     multi_yr_sel = widgets.SelectMultiple(
         options=list(range(1998, dt.datetime.today().year + 1)),
@@ -210,13 +216,14 @@ def start(custSeriesDef):
         )
     gen_hist_interactive_btn.on_click(on_click_historical_interactive)
 
-
+    newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
     near_month_dropdown = widgets.Dropdown(options=newMonths, width='120px', height='30px')
     near_month_dropdown.on_trait_change(on_near_month_dropdown_change, 'value')
     
+    curr_near_month = near_month_dropdown.value
     multi_far_contract_sel = widgets.SelectMultiple(
-        options=util.regularMonthSets[near_month_dropdown.value],
-        value=util.regularMonthSets[near_month_dropdown.value],
+        options=util.regularMonthSets[curr_near_month],
+        value=util.regularMonthSets[curr_near_month],
         width='220px')
     multi_far_contract_sel.layout.height = '90px'
 
