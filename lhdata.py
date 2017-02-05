@@ -6,8 +6,10 @@ import seaborn as sns
 from cycler import cycler
 
 import datetime as dt
+import calendar
 import pandas as pd
 from pandas import TimeGrouper
+
 
 import numpy as np
 from numpy import nan
@@ -130,14 +132,12 @@ def get_month_label(x, pos=None):
 def plot_monthly_seasonal_boxplot(dataList, nearContract, selected_far_contracts):
     #pd.options.display.mpl_style = 'default'
     
-    x = sorted(list(utils.allMonths.values()))
-    month = utils.months[nearContract[2]]
-    rotatedMonths = x[month: ] + x[ :month]
+    #x = sorted(list(utils.allMonths.values()))
+    #month = utils.months[nearContract[2]]
+    #rotatedMonths = x[month: ] + x[ :month]
     #print(rotatedMonths)
-    idx = rotatedMonths.index(month)
-    #print("index {0}".format(rotatedMonths.index(month)))
-    #print([(x - (idx-1)) + len(rotatedMonths) for x in rotatedMonths])
-
+    
+    today = dt.date.today()
     i = 1
     for listItems in dataList:
         farContractName = listItems[0]
@@ -150,23 +150,29 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract, selected_far_contracts
         dfUnshifted['value'] = dfUnshifted[cols].sum(axis=1)
         dfUnshifted['count'] = dfUnshifted[cols].count(axis=1)
         dfUnshifted['month'] = dfUnshifted.index.month
-        month = dt.date.today().month
 
-        #http://machinelearningmastery.com/time-series-data-visualization-with-python/
+        #utils.print_df(dfUnshifted)
+
+        unique_months = dfUnshifted.month.unique()
+        if(len(unique_months) < 12):
+            print('!!! Not all months are plotted')
+            missing_months = [month for month in range(1,13) if month not in unique_months]
+            print('    Missing: {0}'.format([calendar.month_name[month] for month in missing_months]))
 
         fig = plt.figure(i, figsize=(12,9))
-
         subplot = fig.add_subplot(2,1,1)
+
         ax = sns.boxplot(x='month', y='value', data=dfUnshifted, showfliers=False, color=None, hue=None)
         #ax = sns.swarmplot(x="month", y="value", data=dfUnshifted, color=".25")
         
-        for j in range(1,13):
+        for j in unique_months:
             y = dfUnshifted.value[dfUnshifted.month == j].dropna()
             # Add some random "jitter" to the x-axis
             x = np.random.normal(j, 0.04, size=len(y))
             ax.plot(x-1, y, 'r.', alpha=0.2)
-
-        ax.axvspan(month - 0.5, month + 0.5, alpha=0.75, color='#DEE2E3')
+        
+        # subtract 1 to line up with x-axis that starts at 0, not 1
+        ax.axvspan((today.month-1) - 0.5, (today.month-1) + 0.5, alpha=0.75, color='#DEE2E3')
 
         # set your own proper title
         plt.title("{0}-{1}".format(nearContract, listItems[0]))
@@ -176,18 +182,20 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract, selected_far_contracts
         ax.grid(b=False, which='major', color='k', linewidth=0.5, linestyle='dotted')
         ax.grid(b=False, which='minor', color='k', linewidth=0.5, linestyle='dotted')
         
-        for j in range(0,12):
+        # override the default seaborn boxplot theme to make it 
+        # less colorful and simpler to print
+        # each month
+        for j in range(0,len(ax.artists)):
             mybox = ax.artists[j]
-            # Change the appearance of that box
             mybox.set_facecolor('white')    
 
-        mybox = ax.artists[month]
-
-        # Change the appearance of that box
-        mybox.set_facecolor('white')
-        mybox.set_edgecolor('black')
-        mybox.set_alpha(0.75)
-        mybox.set_linewidth(2)
+        # current month
+        if(today.month < len(ax.artists)):
+            mybox = ax.artists[today.month]
+            mybox.set_facecolor('white')
+            mybox.set_edgecolor('black')
+            mybox.set_alpha(0.75)
+            mybox.set_linewidth(2)
 
         sp2 = fig.add_subplot(2,1,2)
         dfShifted = listItems[1]
@@ -206,8 +214,13 @@ def plot_monthly_seasonal_boxplot(dataList, nearContract, selected_far_contracts
         sp2.plot(dfShifted['mean'], color='red', linestyle='dashed')
         
         # Highlighting
-        period = dfShifted[(dfShifted.index.month >= month) & (dfShifted.index.month < month+1)].index
-        sp2.axvspan(min(period), max(period), alpha=0.75, color='#DEE2E3')
+        _, num_days = calendar.monthrange(dt.date.today().year, today.month)
+        range_start = dt.date(today.year - 1, today.month, 1)
+        # TODO: Need to get rid of the -2 in here, but if its at the end
+        #       of the bottom chart, it can cause the month/year tick to dissapear for the last/current month
+        range_end = dt.date(today.year - 1, today.month, num_days - 2)
+
+        sp2.axvspan(range_start, range_end, alpha=0.75, color='#DEE2E3')
 
         i = i+1
         fig.set_tight_layout(True)
@@ -235,8 +248,6 @@ def plot_weekly_seasonal_boxplot(dataList, nearContract, selected_far_contracts)
         isoDate = dt.date.today().isocalendar()
         week = isoDate[1]
 
-        #http://machinelearningmastery.com/time-series-data-visualization-with-python/
-
         fig = plt.figure(i, figsize=(12,9))
 
         subplot = fig.add_subplot(2,1,1)
@@ -244,7 +255,6 @@ def plot_weekly_seasonal_boxplot(dataList, nearContract, selected_far_contracts)
         #ax = sns.swarmplot(x="month", y="value", data=dfUnshifted, color=".25")
         
         for j in range(1,54):
-            
             y = dfUnshifted.value[dfUnshifted.wk == j].dropna()
             # Add some random "jitter" to the x-axis
             x = np.random.normal(j, 0.04, size=len(y))
@@ -260,19 +270,20 @@ def plot_weekly_seasonal_boxplot(dataList, nearContract, selected_far_contracts)
         ax.grid(b=False, which='major', color='k', linewidth=0.5, linestyle='dotted')
         ax.grid(b=False, which='minor', color='k', linewidth=0.5, linestyle='dotted')
         
-        for j in range(0,53):
+        # override the default seaborn boxplot theme to make it 
+        # less colorful and simpler to print
+        # each month
+        for j in range(0,len(ax.artists)):
             mybox = ax.artists[j]
-
-            # Change the appearance of that box
             mybox.set_facecolor('white')    
 
-        mybox = ax.artists[week-1]
-
-        # Change the appearance of that box
-        mybox.set_facecolor('white')
-        mybox.set_edgecolor('black')
-        mybox.set_alpha(0.75)
-        mybox.set_linewidth(2)
+        # current week
+        if(week-1 < len(ax.artists)):
+            mybox = ax.artists[week-1]
+            mybox.set_facecolor('white')
+            mybox.set_edgecolor('black')
+            mybox.set_alpha(0.75)
+            mybox.set_linewidth(2)
 
         sp2 = fig.add_subplot(2,1,2)
         dfShifted = listItems[1]
@@ -291,7 +302,6 @@ def plot_weekly_seasonal_boxplot(dataList, nearContract, selected_far_contracts)
         sp2.plot(dfShifted['mean'], color='red', linestyle='dashed')
         
         # Highlighting
-        period = utils.iso_to_gregorian(isoDate[0], isoDate[1], isoDate[2])
         range_start = utils.add_years(dt.date.today() - dt.timedelta(days=isoDate[2]), -1)
         range_end = range_start + dt.timedelta(days=7)
         sp2.axvspan(range_start, range_end, alpha=0.75, color='#DEE2E3')
@@ -345,7 +355,6 @@ def plot_continual_spread_set(dataList, nearContract, selected_far_contracts):
     
     plt.tight_layout()
     plt.show()
-
 
 def plot_single_historical_subplot(subplot, df, near, far):
     #https://xkcd.com/color/rgb/
@@ -435,7 +444,7 @@ def plot_single_historical_comparison(df, near, far):
     plot_single_historical_subplot(subplot, df, near, far)
     
     plt.tight_layout()
-    plt.savefig('.\output\charts\{0}-{1}_Hist_{2}.png'.format(near, far, dt.date.today().strftime('%Y-%b-%d')))
+    plt.savefig('./output/charts/{0}-{1}_Hist_{2}.png'.format(near, far, dt.date.today().strftime('%Y-%b-%d')))
     
     plt.show()
 
@@ -459,5 +468,5 @@ def plot_historical_comparison(tupleList, near, selected_far_contracts):
         j+=1
     
     plt.tight_layout()
-    plt.savefig('.\output\charts\{0}_Hist_{1}.png'.format(near, dt.date.today().strftime('%Y-%b-%d')))
+    plt.savefig('./output/charts/{0}_Hist_{1}.png'.format(near, dt.date.today().strftime('%Y-%b-%d')))
     plt.show()
