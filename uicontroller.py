@@ -1,5 +1,6 @@
 from __future__ import print_function
 import datetime as dt
+import os
 
 from ipywidgets import interact, interactive, fixed, HBox
 import ipywidgets as widgets
@@ -19,7 +20,10 @@ import seaborn as sns
 
 def start(custSeriesDef):
     sns.set(font_scale=1.30)
-    sns.set_style("whitegrid")
+    sns.set_style('whitegrid')
+    output_dir = './output/charts/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     # historical comparison - 3 rows/far contracts in a single figure
     def on_click_historical_popout(b):
