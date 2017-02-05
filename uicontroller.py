@@ -17,10 +17,10 @@ import lhdata
 
 import seaborn as sns
 
-
 def start(custSeriesDef):
+    sns.set(font_scale=1.30)
     sns.set_style("whitegrid")
-    
+
     # historical comparison - 3 rows/far contracts in a single figure
     def on_click_historical_popout(b):
         clear_output()
@@ -125,17 +125,13 @@ def start(custSeriesDef):
 
     def on_near_month_dropdown_change(name, old, new):
         new_far_contracts = util.regularMonthSets[new]
-        print(new_far_contracts)
+        
         far_month_dropdown.options = new_far_contracts
         far_month_dropdown.value = far_month_dropdown.options[0]
         
-        
         multi_far_contract_sel.options = []
         multi_far_contract_sel.options = new_far_contracts
-        
         multi_far_contract_sel.value = util.regularMonthSets[new]
-
-    
 
     multi_yr_sel = widgets.SelectMultiple(
         options=list(range(1998, dt.datetime.today().year + 1)),
