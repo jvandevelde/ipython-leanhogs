@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Inputs</h3>
+                </div>
+                <div class="panel-body">
+ 
+ 
+                    <!-- FORM -->
+                    <form data-toggle="validator" role="form" method="post"> <!-- validation form http://1000hz.github.io/bootstrap-validator/ -->
+ 
+                        <div class="form-group col-md-2">
+                            <label class="control-label" for="years_select">
+                                Years
+                            </label>
+                            <select multiple id="years_select" size="12"> 
+                                {% for year in years %}
+                                    <option value="{{ year.id }}">{{ year.display_text}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            
+                                <button class="btn btn-secondary btn-block" id="sel_5_yr" name="submit" type="button">
+                                    Five
+                                </button>
+                                <button class="btn btn-secondary btn-block" id="sel_9_yr" name="submit" type="button">
+                                    Nine
+                                </button>
+                                <button class="btn btn-secondary btn-block" id="sel_15_yr" name="submit" type="button">
+                                    Fifteen
+                                </button>
+                            
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="near_contract_select">
+                                Near Contract
+                            </label>
+                            <select class="form-control" id="near_contract_select">
+                              <option letter="G" month="February">G - February</option>
+                              <option letter="J" month="April">J - April</option>
+                              <option letter="K" month="May">K - May</option>
+                              <option letter="M" month="June">M - June</option>
+                              <option letter="N" month="July">N - July</option>
+                              <option letter="Q" month="August">Q - August</option>
+                              <option letter="V" month="October">V - October</option>
+                              <option letter="Z" month="Dec">Z - December</option>
+                            </select>
+           
+                            <label class="control-label" for="far_contract_select">
+                                Far contract
+                            </label>
+                            <select class="form-control" id="far_contract_select">
+                              <option letter="J" month="April">J - April</option>
+                              <option letter="K" month="May">K - May</option>
+                              <option letter="M" month="June">M - June</option>
+                              <option letter="N" month="July">N - July</option>
+                            </select>
+
+                            <label class="control-label" for="report_type_select">
+                                Report Type
+                            </label>
+                            <select class="form-control" id="report_type_select">
+                              <option id="hist_spread">Historical Spreads</option>
+                              <option id="cont_spread">Continous Spreads</option>
+                              <option id="monthly_boxplot">Monthly Boxplot Statistics</option>
+                              <option id="weekly_boxplot">Weekly Boxplot Statistics</option>
+                              <option id="individuals">Individuals</option>
+                            </select>
+                        </div>
+ 
+                        
+                        <div class="form-group col-md-12">
+                            <div> <!-- RD: type="submit" changed to button, since JQuery is in use -->
+                                <button class="btn btn-primary btn-block" id="submit_form" name="submit" type="button">
+                                    Run
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- OUTPUT SECTION -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Output</h3>
+                </div>
+                <div class="panel-body" id="output_div">
+                </div>
+            </div>
+            <!-- END OF OUTPUT SECTION -->
+        </div>
+    </div>
+</div>
+{% endblock %}
