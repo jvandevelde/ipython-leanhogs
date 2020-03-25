@@ -7,7 +7,7 @@
             "pythonPath":"${config.python.pythonPath}", 
             "request": "launch",
             "stopOnEntry": true,
-            "console": "none",
+            "console": "internalConsole",
             "program": "${file}",
             "cwd": "${workspaceRoot}",
             "debugOptions": [

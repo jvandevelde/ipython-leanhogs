@@ -50,6 +50,18 @@ regularMonthSets = {
     'Z':['G','J','K','M']
 }
 
+commonButterflies = {
+    'JKM':['J','K','M'],
+    'KMN':['K','M','N'],
+    'MNQ':['M','N','Q'],
+    'NQV':['N','Q','V'],
+    'QVZ':['Q','V','Z'],
+    'VZG':['V','Z','G'],
+    'ZGJ':['Z','G','J'],
+    'GJK':['G','J','K'],
+    'GJM':['G','J','M']
+}
+
 def print_df(df):
     pd.set_option('display.max_rows', len(df))
     print(df)

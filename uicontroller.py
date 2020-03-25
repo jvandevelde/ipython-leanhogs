@@ -7,14 +7,10 @@ import ipywidgets as widgets
 from IPython.display import display
 from IPython.display import clear_output
 
-import cufflinks as cf
-import plotly
-import plotly.offline as py
-import plotly.graph_objs as go
-
 import utility as util
 import controller
 import lhdata
+import butterfly
 
 import seaborn as sns
 
@@ -57,7 +53,35 @@ def start(custSeriesDef):
         if(len(sel_far_contracts) == 0):
             sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         lhdata.plot_continual_spread_set(dfList, near, sel_far_contracts)
+
+    def on_click_generate_butterfly(b):
+        #clear_output()
         
+        layout = butterfly_chart_layout_sel.value
+        quartile_overrides = butterfly_condensed_range_slider.value
+
+        contract_x = "LN{0}".format(custom_butterfly_contract_x.value)
+        contract_y = "LN{0}".format(custom_butterfly_contract_y.value)
+        contract_z = "LN{0}".format(custom_butterfly_contract_z.value)
+        contractsTuple = (contract_x, contract_y, contract_z)
+        
+        butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
+
+    def on_click_generate_predefined_butterfly(b):
+        
+        selected_tuple = util.commonButterflies[predefined_butterfly_sel.value]
+        
+        layout = butterfly_chart_layout_sel.value
+        quartile_overrides = butterfly_condensed_range_slider.value
+
+        contract_x = "LN{0}".format(selected_tuple[0])
+        contract_y = "LN{0}".format(selected_tuple[1])
+        contract_z = "LN{0}".format(selected_tuple[2])
+        contractsTuple = (contract_x, contract_y, contract_z)
+        
+        
+        butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
+
     def on_click_monthly_historical_boxplot(b):
         clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
@@ -76,26 +100,26 @@ def start(custSeriesDef):
             sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         lhdata.plot_weekly_seasonal_boxplot(dfList, near, sel_far_contracts)
 
-    def on_click_historical_interactive(b):
-        clear_output()
-        cf.go_offline() # required to use plotly offline (no account required).
-        py.init_notebook_mode() # graphs charts inline (IPython).
+    # def on_click_historical_interactive(b):
+    #     clear_output()
+    #     cf.go_offline() # required to use plotly offline (no account required).
+    #     py.init_notebook_mode() # graphs charts inline (IPython).
         
-        near = 'LN{0}'.format(near_month_dropdown.value)
+    #     near = 'LN{0}'.format(near_month_dropdown.value)
         
-        sel_far_contracts = list(multi_far_contract_sel.value)
-        if(len(sel_far_contracts) == 0):
-            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+    #     sel_far_contracts = list(multi_far_contract_sel.value)
+    #     if(len(sel_far_contracts) == 0):
+    #         sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         
-        dfList = controller.calculate(near, list(multi_yr_sel.value))
+    #     dfList = controller.calculate(near, list(multi_yr_sel.value))
 
-        for far_contract in sel_far_contracts:
-            far = 'LN{0}'.format(far_contract)
-            disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-            df = disp[0].dropna(how='all')
-            df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0} - {1}'.format(near, far), theme='henanigans', dimensions=(850,350))
+    #     for far_contract in sel_far_contracts:
+    #         far = 'LN{0}'.format(far_contract)
+    #         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
+    #         df = disp[0].dropna(how='all')
+    #         df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0} - {1}'.format(near, far), theme='henanigans', dimensions=(850,350))
         
-        #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
+    #     #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
     def on_click_gen_custom_series(b):
         clear_output()
@@ -116,29 +140,29 @@ def start(custSeriesDef):
             lhdata.plot_custom_historical_series(disp[0], custSeriesDef, title)
         
     
-    def on_click_gen_custom_int_series(b):
-        clear_output()
-        cf.go_offline() # required to use plotly offline (no account required).
-        py.init_notebook_mode() # graphs charts inline (IPython).
+    # def on_click_gen_custom_int_series(b):
+    #     clear_output()
+    #     cf.go_offline() # required to use plotly offline (no account required).
+    #     py.init_notebook_mode() # graphs charts inline (IPython).
         
-        near = 'LN{0}'.format(near_month_dropdown.value)
+    #     near = 'LN{0}'.format(near_month_dropdown.value)
         
-        unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
-        dfList = controller.calculate(near, unique_years)
+    #     unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
+    #     dfList = controller.calculate(near, unique_years)
         
-        sel_far_contracts = list(multi_far_contract_sel.value)
-        if(len(sel_far_contracts) == 0):
-            sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
+    #     sel_far_contracts = list(multi_far_contract_sel.value)
+    #     if(len(sel_far_contracts) == 0):
+    #         sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         
-        for far_contract in sel_far_contracts:
-            far = 'LN{0}'.format(far_contract)
-            title = 'Custom Means {0} - {1}'.format(near, far)
+    #     for far_contract in sel_far_contracts:
+    #         far = 'LN{0}'.format(far_contract)
+    #         title = 'Custom Means {0} - {1}'.format(near, far)
             
-            disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-            dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef)
-            dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(850,350))
+    #         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
+    #         dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef)
+    #         dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(850,350))
 
-        #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
+    #     #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
 
     def on_near_month_dropdown_change(name, old, new):
         new_far_contracts = util.regularMonthSets[new]
@@ -147,6 +171,7 @@ def start(custSeriesDef):
         multi_far_contract_sel.options = new_far_contracts
         multi_far_contract_sel.value = util.regularMonthSets[new]
 
+  
     multi_yr_sel = widgets.SelectMultiple(
         options=list(range(1998, dt.datetime.today().year + 1)),
         value=list(range(dt.datetime.today().year - 4, dt.datetime.today().year + 1)),
@@ -208,7 +233,7 @@ def start(custSeriesDef):
         width='220px',
         button_style='success' #'success', 'info', 'warning', 'danger' or ''
         )
-    gen_custom_int_series_btn.on_click(on_click_gen_custom_int_series)
+    #gen_custom_int_series_btn.on_click(on_click_gen_custom_int_series)
 
     gen_hist_interactive_btn = widgets.Button(
         description='#8 - Historical Spreads (Interactive)',
@@ -216,7 +241,7 @@ def start(custSeriesDef):
         width='220px',
         button_style='success' #'success', 'info', 'warning', 'danger' or ''
         )
-    gen_hist_interactive_btn.on_click(on_click_historical_interactive)
+    #gen_hist_interactive_btn.on_click(on_click_historical_interactive)
 
     newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
     near_month_dropdown = widgets.Dropdown(options=newMonths, width='150px', height='30px')
@@ -291,3 +316,76 @@ def start(custSeriesDef):
 
     # display the arranged controls
     display(h_sel_cont)
+
+
+    # BUTTERFLY UI
+
+    months = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
+    
+    predefined_butterflies = list(util.commonButterflies.keys())
+    
+    predefined_butterfly_sel = widgets.Select(
+        options=predefined_butterflies,
+        value=predefined_butterflies[0],
+        width='150px')
+    predefined_butterfly_sel.layout.height = '190px'
+    
+
+
+    butterfly_chart_layout_sel = widgets.Select(
+        options=['Regular', 'Condensed', 'Both'],
+        value='Both',
+        width='125px')
+    butterfly_chart_layout_sel.layout.height = '60px'
+
+    butterfly_condensed_range_slider = widgets.IntRangeSlider(
+        value=[25, 75],
+        min=0,
+        max=100,
+        step=5,
+        description='Percentile',
+        disabled=False,
+        continuous_update=False,
+        orientation='horizontal',
+        readout=True,
+        readout_format='d',
+    )
+
+    generate_predefined_butterfly_btn = widgets.Button(
+        description='<- Predefined',
+        tooltip='Generates the selected/predefined Butterfly',
+        width='300px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+    )
+    generate_predefined_butterfly_btn.on_click(on_click_generate_predefined_butterfly)
+    
+    
+    custom_butterfly_contract_x = widgets.Dropdown(options=months, width='150px', height='30px')
+    custom_butterfly_contract_y = widgets.Dropdown(options=months, width='150px', height='30px')
+    custom_butterfly_contract_z = widgets.Dropdown(options=months, width='150px', height='30px')
+    
+    contract_x_field = widgets.VBox(children=[
+        widgets.Label('Butterfly X'), 
+        custom_butterfly_contract_x])    
+    contract_y_field = widgets.VBox(children=[
+        widgets.Label('Butterfly Z'), 
+        custom_butterfly_contract_y])    
+    contract_z_field = widgets.VBox(children=[
+        widgets.Label('Butterfly Z'), 
+        custom_butterfly_contract_z])    
+    
+    generate_custom_butterfly_btn = widgets.Button(
+        description='Custom Sel ->',
+        tooltip='Generates a custom Butterfly',
+        width='320px',
+        button_style='success', #'success', 'info', 'warning', 'danger' or ''
+        )
+    generate_custom_butterfly_btn.on_click(on_click_generate_butterfly)
+
+    
+    butterfly_buttons_horz_container = widgets.HBox(children=[generate_predefined_butterfly_btn, generate_custom_butterfly_btn])
+    butterfly_options_vert_container = widgets.VBox(children=[butterfly_chart_layout_sel, butterfly_condensed_range_slider, butterfly_buttons_horz_container])
+    custom_butterfly_month_vert_container = widgets.VBox(children=[contract_x_field, contract_y_field, contract_z_field])
+    main_container = widgets.HBox(children=[predefined_butterfly_sel, butterfly_options_vert_container, custom_butterfly_month_vert_container])
+    
+    display(main_container)
