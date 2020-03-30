@@ -4,33 +4,26 @@
 * Install nbformat
    * `conda install nbformat`
 * Create a new environment using the environment file at ./conda/environment.yml
-   * `conda env create -f ./conda/environment.yml` (Windows)
-   * `conda env create -f ./conda/environment-ubuntu.yml` (Ubuntu)
+   * `conda env create -f ./conda/environment.yml`
 
 1. Launch
    * `jupyter notebook`
 
-sudo apt-get install python3-matplotlib
-
 1. conda create --name hogs python=3.5
 1. conda activate hogs
+   - pip install --upgrade pip
+   - pip install PyQt5
+   - pip install jupyter==1.0.0
+   - pip install matplotlib==3.0.3
+   - pip install numpy==1.14.2
+   - pip install quandl==2.8.9
+   - pip install requests
+   - pip install pandas==0.18.1
+   - pip install seaborn==0.7.1
+   - pip install xlsxwriter==0.9.4
 
+# Windows Tips
 
-1. conda install jupyter
-1. conda install matplotlib
-conda install cycler
-conda install numpy
-
-pip install --upgrade pip
-pip install quandl==2.8.9
-pip install requests
-
-# NOPE pip install plotly==1.12.12
-
-pip install cufflinks==0.8.2
-pip install ipython==5.1.0
-
-pip install pandas==0.18.1
-pip install seaborn==0.7.1
-pip install xlsxwriter==0.9.4
-
+1. You may get an untrusted kernel error combined with missing module `win32api`
+   https://github.com/jupyter/notebook/issues/4909
+   pip install --upgrade jupyter_client

@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 from pandas.tseries.offsets import BDay # BDay is business day, not birthday...
 from dateutil.relativedelta import relativedelta
@@ -16,6 +17,7 @@ import matplotlib.ticker as ticker
 import matplotlib.dates as dates
 import seaborn as sns
 from cycler import cycler
+import itertools
 
 import datetime as dt
 import calendar
@@ -27,6 +29,7 @@ import numpy as np
 from numpy import nan
 import math
 import utility as utils
+from exceptions import ContractException
 
 def butterfly_calc(row):
     
@@ -51,10 +54,16 @@ def butterfly_calc(row):
 def butterfly(data, contractsTuple, contractExpiryYear):
     
     x = get_contract_data(data, contractsTuple[0], contractExpiryYear)  ## returns a Series (column)
-    # TODO: Rollover to next year if x is Nov-Dec
     y = get_contract_data(data, contractsTuple[1], contractExpiryYear)
     z = get_contract_data(data, contractsTuple[2], contractExpiryYear)
     
+    if(x.empty):
+        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[0], contractExpiryYear))
+    if(y.empty):
+        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[1], contractExpiryYear))
+    if(z.empty):
+        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[2], contractExpiryYear))
+
     bfdf = pd.concat([x,y,z], axis=1).dropna(thresh=3)
     bfSeries = bfdf.apply(butterfly_calc, axis=1).dropna() #.rolling(3).mean()
     
@@ -66,6 +75,8 @@ def butterfly(data, contractsTuple, contractExpiryYear):
     return bfSeries
 
 def create_chart(contractsTuple, selectedYears, selectedLayout, condensedQuartileOverrides):
+    
+    markers = itertools.cycle(('^', 'H', 'p', 'v', '*', 'H'))
     
     data = dm.load_data()
     seriesDf = pd.DataFrame()
@@ -97,6 +108,7 @@ def create_chart(contractsTuple, selectedYears, selectedLayout, condensedQuartil
     seriesDf['upperPercentile'] = seriesDf[cols].apply(lambda x: np.nanpercentile(x, condensedQuartileOverrides[0]), axis=1)
     seriesDf['lowerPercentile'] = seriesDf[cols].apply(lambda x: np.nanpercentile(x, condensedQuartileOverrides[1]), axis=1)
     
+    plt.style.use('seaborn-colorblind')
     figure = plt.figure(num=1, figsize=(15,10), dpi=80)
     figure.suptitle("{0}-2*{1}+{2} BUTTERFLY".format(
         contractsTuple[0], 
@@ -130,8 +142,8 @@ def create_chart(contractsTuple, selectedYears, selectedLayout, condensedQuartil
                 alpha=0.4)
     else: 
         # Plot all the years except this year (already done above)
-        for year in years:
-            ax1.plot(seriesDf[year], label=get_legend_name(contractsTuple, year), lineWidth=1.1)
+        for idx, year in enumerate(years):
+            ax1.plot(seriesDf[year], label=get_legend_name(contractsTuple, year), lineWidth=1.1, marker=next(markers), markevery=10+(2*idx))
 
         if selectedLayout == 'Both':
             ax2 = figure.add_subplot(3,2,1)
@@ -185,9 +197,3 @@ def get_contract_start_date(contractName, expiryYear):
     startDate = contractEndDate - relativedelta(years=1) 
 
     return startDate
-
-def demo_create_chart():
-    contractsTuple = ('LNM', 'LNN', 'LNQ')
-    years = ['2010', '2011', '2012', '2013', '2014', '2015','2016','2017']
-    
-    create_chart(contractsTuple, years)

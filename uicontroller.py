@@ -1,6 +1,6 @@
 from __future__ import print_function
 import datetime as dt
-import os
+import os, sys
 
 from ipywidgets import interact, interactive, fixed, HBox
 import ipywidgets as widgets
@@ -13,6 +13,7 @@ import lhdata
 import butterfly
 
 import seaborn as sns
+from exceptions import ContractException
 
 def start(custSeriesDef):
     sns.set(font_scale=1.30)
@@ -65,8 +66,11 @@ def start(custSeriesDef):
         contract_z = "LN{0}".format(custom_butterfly_contract_z.value)
         contractsTuple = (contract_x, contract_y, contract_z)
         
-        butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
-
+        try:
+            butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
+        except ContractException:
+            print("Error: ", sys.exc_info()[0])
+            
     def on_click_generate_predefined_butterfly(b):
         
         selected_tuple = util.commonButterflies[predefined_butterfly_sel.value]
@@ -79,8 +83,10 @@ def start(custSeriesDef):
         contract_z = "LN{0}".format(selected_tuple[2])
         contractsTuple = (contract_x, contract_y, contract_z)
         
-        
-        butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
+        try:
+            butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
+        except ContractException as e:
+            print("Error: ", e.args[0])
 
     def on_click_monthly_historical_boxplot(b):
         clear_output()
