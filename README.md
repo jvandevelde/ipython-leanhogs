@@ -1,6 +1,8 @@
 # To get started
 
 * Install miniconda from http://conda.pydata.org/miniconda.html
+    * Add conda & scripts directory to Windows PATH
+    * ex: C:\Anaconda3;C:\Anaconda3\Scripts\
 * Install nbformat
    * `conda install nbformat`
 * Create a new environment using the environment file at ./conda/environment.yml
