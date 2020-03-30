@@ -1,4 +1,4 @@
-name: hogs2
+name: hogs
 channels:
   - defaults
 dependencies:
