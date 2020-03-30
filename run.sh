@@ -1,4 +1,4 @@
 #!/bin/bash
 
-source activate hogs
-jupyter notebook hogs.ipynb
+conda activate hogs
+jupyter notebook Lean_Hogs_v5.ipynb
