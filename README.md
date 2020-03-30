@@ -30,10 +30,16 @@
    https://github.com/jupyter/notebook/issues/4909
    pip install --upgrade jupyter_client
 
+## Installation on Windows
 
-1. Install conda
-1. Add to path
+1. Install conda/MiniConda
+1. Add conda & scripts directory to Windows PATH
+    * ex: C:\Anaconda3;C:\Anaconda3\Scripts\
 1. Create new py3.5 env
+   * `conda env create --name hogs python=3.5`
 1. Activate new env
-1. python -m pip install --upgrade pip
-1. pip install -r ./conda/requirements.txt
+   * `conda activate hogs`
+1. Upgrade pip in new environment
+   * `python -m pip install --upgrade pip`
+1. Install environment via pip
+   * `pip install -r ./conda/requirements.txt`

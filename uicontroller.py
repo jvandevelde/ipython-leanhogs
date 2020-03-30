@@ -24,7 +24,7 @@ def start(custSeriesDef):
 
     # historical comparison - 3 rows/far contracts in a single figure
     def on_click_historical_popout(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         sel_far_contracts = list(multi_far_contract_sel.value)
         if(len(sel_far_contracts) == 0):
@@ -38,7 +38,7 @@ def start(custSeriesDef):
 
     # historical comparison - figure per far contract, with a plot per year
     def on_click_individual_popout(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -47,7 +47,7 @@ def start(custSeriesDef):
         lhdata.plot_individual_against_current(dfList, near, sel_far_contracts)
 
     def on_click_historical_cont_popout(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -68,8 +68,8 @@ def start(custSeriesDef):
         
         try:
             butterfly.create_chart(contractsTuple, list(multi_yr_sel.value), layout, quartile_overrides)
-        except ContractException:
-            print("Error: ", sys.exc_info()[0])
+        except ContractException as e:
+            print("Error: ", e.args[0])
             
     def on_click_generate_predefined_butterfly(b):
         
@@ -89,7 +89,7 @@ def start(custSeriesDef):
             print("Error: ", e.args[0])
 
     def on_click_monthly_historical_boxplot(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -98,7 +98,7 @@ def start(custSeriesDef):
         lhdata.plot_monthly_seasonal_boxplot(dfList, near, sel_far_contracts)
        
     def on_click_weekly_historical_boxplot(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -106,29 +106,8 @@ def start(custSeriesDef):
             sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
         lhdata.plot_weekly_seasonal_boxplot(dfList, near, sel_far_contracts)
 
-    # def on_click_historical_interactive(b):
-    #     clear_output()
-    #     cf.go_offline() # required to use plotly offline (no account required).
-    #     py.init_notebook_mode() # graphs charts inline (IPython).
-        
-    #     near = 'LN{0}'.format(near_month_dropdown.value)
-        
-    #     sel_far_contracts = list(multi_far_contract_sel.value)
-    #     if(len(sel_far_contracts) == 0):
-    #         sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
-        
-    #     dfList = controller.calculate(near, list(multi_yr_sel.value))
-
-    #     for far_contract in sel_far_contracts:
-    #         far = 'LN{0}'.format(far_contract)
-    #         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-    #         df = disp[0].dropna(how='all')
-    #         df.iplot(kind='scatter', xTitle='Date', yTitle='Difference', title='{0} - {1}'.format(near, far), theme='henanigans', dimensions=(850,350))
-        
-    #     #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
-
     def on_click_gen_custom_series(b):
-        clear_output()
+        #clear_output()
         near = 'LN{0}'.format(near_month_dropdown.value)
         
         unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
@@ -145,31 +124,6 @@ def start(custSeriesDef):
             disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
             lhdata.plot_custom_historical_series(disp[0], custSeriesDef, title)
         
-    
-    # def on_click_gen_custom_int_series(b):
-    #     clear_output()
-    #     cf.go_offline() # required to use plotly offline (no account required).
-    #     py.init_notebook_mode() # graphs charts inline (IPython).
-        
-    #     near = 'LN{0}'.format(near_month_dropdown.value)
-        
-    #     unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
-    #     dfList = controller.calculate(near, unique_years)
-        
-    #     sel_far_contracts = list(multi_far_contract_sel.value)
-    #     if(len(sel_far_contracts) == 0):
-    #         sel_far_contracts = util.regularMonthSets[near_month_dropdown.value]
-        
-    #     for far_contract in sel_far_contracts:
-    #         far = 'LN{0}'.format(far_contract)
-    #         title = 'Custom Means {0} - {1}'.format(near, far)
-            
-    #         disp = [dfHistorical for (farContract, dfHistorical, dfContinuous) in dfList if farContract == far]
-    #         dfAvgs = lhdata.calculate_custom_historical_series(disp[0], custSeriesDef)
-    #         dfAvgs.dropna(how='all').iplot(kind='scatter', xTitle='Date', yTitle='Difference', title=title, theme='polar', dimensions=(850,350))
-
-    #     #cf.getThemes() # gets the full list of available themes for cufflinks/plottly
-
     def on_near_month_dropdown_change(name, old, new):
         new_far_contracts = util.regularMonthSets[new]
         
@@ -233,22 +187,6 @@ def start(custSeriesDef):
         )
     gen_custom_series_btn.on_click(on_click_gen_custom_series)
 
-    gen_custom_int_series_btn = widgets.Button(
-        description='#7 - Custom series (Interactive)',
-        tooltip='Compare custom series interactively',
-        width='220px',
-        button_style='success' #'success', 'info', 'warning', 'danger' or ''
-        )
-    #gen_custom_int_series_btn.on_click(on_click_gen_custom_int_series)
-
-    gen_hist_interactive_btn = widgets.Button(
-        description='#8 - Historical Spreads (Interactive)',
-        tooltip='Shows selected spreads interactively',
-        width='220px',
-        button_style='success' #'success', 'info', 'warning', 'danger' or ''
-        )
-    #gen_hist_interactive_btn.on_click(on_click_historical_interactive)
-
     newMonths = list(zip(util.displayMonths.keys(), util.displayMonths.values()))
     near_month_dropdown = widgets.Dropdown(options=newMonths, width='150px', height='30px')
     near_month_dropdown.on_trait_change(on_near_month_dropdown_change, 'value')
@@ -272,9 +210,7 @@ def start(custSeriesDef):
             gen_hist_monthly_boxplot_popout_btn, 
             gen_hist_weekly_boxplot_popout_btn, 
             gen_indvidual_popout_btn,
-            gen_custom_series_btn,
-            gen_custom_int_series_btn,
-            gen_hist_interactive_btn]
+            gen_custom_series_btn]
     
     v_col1 = widgets.VBox(children=[multi_yr_sel])
     v_col2 = widgets.VBox(children=[near_dropdown_container, far_select_container])
