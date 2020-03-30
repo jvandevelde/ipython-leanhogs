@@ -29,3 +29,11 @@
 1. You may get an untrusted kernel error combined with missing module `win32api`
    https://github.com/jupyter/notebook/issues/4909
    pip install --upgrade jupyter_client
+
+
+1. Install conda
+1. Add to path
+1. Create new py3.5 env
+1. Activate new env
+1. python -m pip install --upgrade pip
+1. pip install -r ./conda/requirements.txt
