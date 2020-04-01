@@ -50,17 +50,16 @@ regularMonthSets = {
     'Z':['G','J','K','M']
 }
 
-commonButterflies = {
-    'JKM':['J','K','M'],
-    'KMN':['K','M','N'],
-    'MNQ':['M','N','Q'],
-    'NQV':['N','Q','V'],
-    'QVZ':['Q','V','Z'],
-    'VZG':['V','Z','G'],
-    'ZGJ':['Z','G','J'],
-    'GJK':['G','J','K'],
-    'GJM':['G','J','M']
-}
+commonButterflies = collections.OrderedDict()
+commonButterflies['JKM'] = ['J','K','M']
+commonButterflies['KMN'] = ['K','M','N']
+commonButterflies['MNQ'] = ['M','N','Q']
+commonButterflies['NQV'] = ['N','Q','V']
+commonButterflies['QVZ'] = ['Q','V','Z']
+commonButterflies['VZG'] = ['V','Z','G']
+commonButterflies['ZGJ'] = ['Z','G','J']
+commonButterflies['GJK'] = ['G','J','K']
+commonButterflies['GJM'] = ['G','J','M']
 
 def print_df(df):
     pd.set_option('display.max_rows', len(df))

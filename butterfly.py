@@ -51,18 +51,23 @@ def butterfly_calc(row):
     # http://jonathansoma.com/lede/foundations/classes/pandas%20columns%20and%20functions/apply-a-function-to-every-row-in-a-pandas-dataframe/
     return row.iloc[0]+(-2*row.iloc[1])+row.iloc[2]
 
-def butterfly(data, contractsTuple, contractExpiryYear):
+def butterfly(data, contractExpiryMap):
     
-    x = get_contract_data(data, contractsTuple[0], contractExpiryYear)  ## returns a Series (column)
-    y = get_contract_data(data, contractsTuple[1], contractExpiryYear)
-    z = get_contract_data(data, contractsTuple[2], contractExpiryYear)
+    keys = list(contractExpiryMap.keys())
+    contractX = keys[0]
+    contractY = keys[1]
+    contractZ = keys[2]
+
+    x = get_contract_data(data, contractX, contractExpiryMap[contractX])  ## returns a Series (column)
+    y = get_contract_data(data, contractY, contractExpiryMap[contractY])
+    z = get_contract_data(data, contractZ, contractExpiryMap[contractZ])
     
     if(x.empty):
-        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[0], contractExpiryYear))
+        raise ContractException("The {} contract in {} was not valid".format(contractX, contractExpiryMap[contractX]))
     if(y.empty):
-        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[1], contractExpiryYear))
+        raise ContractException("The {} contract in {} was not valid".format(contractY, contractExpiryMap[contractY]))
     if(z.empty):
-        raise ContractException("The {} contract in {} was not valid".format(contractsTuple[2], contractExpiryYear))
+        raise ContractException("The {} contract in {} was not valid".format(contractZ, contractExpiryMap[contractZ]))
 
     bfdf = pd.concat([x,y,z], axis=1).dropna(thresh=3)
     bfSeries = bfdf.apply(butterfly_calc, axis=1).dropna() #.rolling(3).mean()
@@ -74,31 +79,59 @@ def butterfly(data, contractsTuple, contractExpiryYear):
 
     return bfSeries
 
+def create_contract_to_expiry_map(contractsTuple, forYear):
+    
+    nextYear = forYear + 1
+
+    month1 = utils.months[contractsTuple[0][-1:]]
+    month2 = utils.months[contractsTuple[1][-1:]]
+    month3 = utils.months[contractsTuple[2][-1:]]
+    
+    contractExpiryMap = OrderedDict()
+    contractExpiryMap[contractsTuple[0]] = str(forYear)
+    contractExpiryMap[contractsTuple[1]] = str(forYear)
+    contractExpiryMap[contractsTuple[2]] = str(forYear)
+
+    if month3 < month1:
+        # print("Adjusting expiry year from {} to {} for contract {}".format(forYear, nextYear, contractsTuple[2]))
+        currYear = str(nextYear)
+        contractExpiryMap[contractsTuple[2]] = str(nextYear) 
+    
+    if month2 < month1:
+        if month3 > month1 or month3 < month2:
+            raise ContractException("Invalid selection. 3rd month must be later than the 2nd.")
+
+        # print("Adjusting expiry year from {} to {} for contract {}".format(forYear, nextYear, contractsTuple[1]))
+        currYear =  str(nextYear)
+        contractExpiryMap[contractsTuple[1]] = str(nextYear)
+
+    return contractExpiryMap
+
 def create_chart(contractsTuple, selectedYears, selectedLayout, condensedQuartileOverrides):
     
     markers = itertools.cycle(('^', 'H', 'p', 'v', '*', 'H'))
     
+    currYear = str(dt.date.today().year)
+    
     data = dm.load_data()
     seriesDf = pd.DataFrame()
 
-    currYear = str(dt.date.today().year)
     # we're going to handle the present year as a special case, so remove it from the main list if it's present
     years = [yr for yr in selectedYears if str(yr) != currYear]
-    
+
     # get first year
-    firstYearSeries = butterfly(data, contractsTuple, years[0])
+    firstYearSeries = butterfly(data, create_contract_to_expiry_map(contractsTuple, years[0]))
     graphStartDte = firstYearSeries.first_valid_index()
     graphEndDte = firstYearSeries.last_valid_index()
     
     # shift every other year to overlap their series
     for year in years:
-        butterflySeries = butterfly(data, contractsTuple, year)
+        butterflySeries = butterfly(data, create_contract_to_expiry_map(contractsTuple, year))
         daysToShift = (dt.datetime(int(year), graphStartDte.month, graphStartDte.day) - graphStartDte).days
         seriesDf[year] = butterflySeries.shift(-daysToShift, 'D')
     
     # shift the current year to overlap with the rest
-    
-    currYearButterfly = butterfly(data, contractsTuple, currYear)
+    currYearButterfly = butterfly(data, create_contract_to_expiry_map(contractsTuple, int(currYear)))
     currYearShift = (dt.datetime(int(currYear), graphStartDte.month, graphStartDte.day) - graphStartDte).days
     seriesDf[currYear] = currYearButterfly.shift(-currYearShift, 'D')
 
