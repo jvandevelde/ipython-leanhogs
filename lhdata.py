@@ -8,8 +8,6 @@ from cycler import cycler
 import datetime as dt
 import calendar
 import pandas as pd
-from pandas import TimeGrouper
-
 
 import numpy as np
 from numpy import nan

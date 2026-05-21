@@ -60,14 +60,10 @@ def calculate(near, historicalYears):
 
     df = dm.load_data()
 
-    # TODO: Create option to enable this
-    # create_workbook(df, near, far, years)
-    
-    finalDataXlsWriter = pd.ExcelWriter('output/finalData.xlsx', 
+    finalDataXlsWriter = pd.ExcelWriter('output/finalData.xlsx',
                             engine='xlsxwriter',
                             datetime_format='mmm dd',
                             date_format='mmm dd')
-
 
     graphStartDte = get_contract_start_date(nearContractMonthLetter, dt.date.today().year)
     graphEndDte = get_contract_expiry_date(nearContractMonthLetter, dt.date.today().year)
@@ -134,43 +130,7 @@ def calculate(near, historicalYears):
         dfList.append([farContractName, dfDiffsShifted, dfDiffsOriginalDtes])
         dfDiffsShifted.to_excel(finalDataXlsWriter, sheet_name=farContractName)
 
-    finalDataXlsWriter.save()
     finalDataXlsWriter.close()
 
     return dfList
-
-
-def create_workbook(df, near, far, years):
-    xlsWriter = pd.ExcelWriter('output/workingData.xlsx', 
-                            engine='xlsxwriter',
-                            datetime_format='mmm dd, yyyy',
-                            date_format='mmm dd, yyyy')
-
-    df.to_excel(xlsWriter, sheet_name='Original')
-
-
-    for year in years:
-        cols = []
-        worksheetName = 'LNK {0}'.format(year)
-        cols.append('{0}{1}'.format(near, year))
-        #print("Calculating working datasets for {0}".format(year))
-        for fcn in far:
-            cols.append('{0}{1}'.format(fcn, year))
-        
-        # DropNA http://stackoverflow.com/questions/13413590/how-to-drop-rows-of-pandas-dataframe-whose-value-of-certain-column-is-nan
-        dfSubset = pd.DataFrame(df[cols])
-        dfSubset.dropna(inplace=True, how='all')
-        # Improving Pandas Excel output
-        # http://pbpython.com/improve-pandas-excel-output.html
-        # dfSubset = dfSubset.assign(diff1=(dfSubset[dfSubset.columns[0]] - dfSubset[dfSubset.columns[1]]))
-        for fcn in far:
-            colName = 'diff_{0}_{1}'.format(near,fcn)
-            dfSubset[colName] = dfSubset['{0}{1}'.format(near, year)] - dfSubset['{0}{1}'.format(fcn, year)]
-            
-        dfSubset.to_excel(xlsWriter, sheet_name=worksheetName)
-        worksheet = xlsWriter.sheets[worksheetName]
-        worksheet.set_column('A:A', 18)
-
-    xlsWriter.save()
-    xlsWriter.close()
     

@@ -22,7 +22,6 @@ import itertools
 import datetime as dt
 import calendar
 import pandas as pd
-from pandas import TimeGrouper
 
 
 import numpy as np
@@ -80,7 +79,10 @@ def butterfly(data, contractExpiryMap):
     return bfSeries
 
 def create_contract_to_expiry_map(contractsTuple, forYear):
-    
+
+    if len(set(contractsTuple)) != 3:
+        raise ContractException("All three butterfly contracts must be different.")
+
     nextYear = forYear + 1
 
     month1 = utils.months[contractsTuple[0][-1:]]

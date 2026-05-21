@@ -11,9 +11,11 @@ import utility as util
 import controller
 import lhdata
 import butterfly
+import dataManager as dm
 
 import seaborn as sns
 from exceptions import ContractException
+from PyQt5.QtWidgets import QFileDialog, QApplication
 
 def start(custSeriesDef):
     sns.set(font_scale=1.30)
@@ -25,6 +27,7 @@ def start(custSeriesDef):
     # historical comparison - 3 rows/far contracts in a single figure
     def on_click_historical_popout(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         sel_far_contracts = list(multi_far_contract_sel.value)
         if(len(sel_far_contracts) == 0):
@@ -39,6 +42,7 @@ def start(custSeriesDef):
     # historical comparison - figure per far contract, with a plot per year
     def on_click_individual_popout(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -48,6 +52,7 @@ def start(custSeriesDef):
 
     def on_click_historical_cont_popout(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -57,7 +62,7 @@ def start(custSeriesDef):
 
     def on_click_generate_butterfly(b):
         #clear_output()
-        
+        dm.DATA_FILE = data_file_text.value
         layout = butterfly_chart_layout_sel.value
         quartile_overrides = butterfly_condensed_range_slider.value
 
@@ -72,7 +77,7 @@ def start(custSeriesDef):
             print("Error: ", e.args[0])
             
     def on_click_generate_predefined_butterfly(b):
-        
+        dm.DATA_FILE = data_file_text.value
         selected_tuple = util.commonButterflies[predefined_butterfly_sel.value]
         
         layout = butterfly_chart_layout_sel.value
@@ -90,6 +95,7 @@ def start(custSeriesDef):
 
     def on_click_monthly_historical_boxplot(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -99,6 +105,7 @@ def start(custSeriesDef):
        
     def on_click_weekly_historical_boxplot(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         dfList = controller.calculate(near, list(multi_yr_sel.value))
         sel_far_contracts = list(multi_far_contract_sel.value)
@@ -108,6 +115,7 @@ def start(custSeriesDef):
 
     def on_click_gen_custom_series(b):
         #clear_output()
+        dm.DATA_FILE = data_file_text.value
         near = 'LN{0}'.format(near_month_dropdown.value)
         
         unique_years = list(set(x for l in list(custSeriesDef.values()) for x in l))
@@ -132,6 +140,24 @@ def start(custSeriesDef):
         multi_far_contract_sel.value = util.regularMonthSets[new]
 
   
+    data_file_text = widgets.Text(
+        value=dm.DATA_FILE,
+        description='Data File:',
+        placeholder='Path to settlement data Excel file',
+        width='500px')
+
+    def on_click_browse(b):
+        app = QApplication.instance() or QApplication([])
+        path, _ = QFileDialog.getOpenFileName(
+            None, 'Select Settlement Data File', '', 'Excel Files (*.xlsx *.xls)')
+        if path:
+            data_file_text.value = path
+
+    browse_btn = widgets.Button(description='Browse...', width='90px')
+    browse_btn.on_click(on_click_browse)
+
+    display(widgets.HBox(children=[data_file_text, browse_btn]))
+
     multi_yr_sel = widgets.SelectMultiple(
         options=list(range(1998, dt.datetime.today().year + 1)),
         value=list(range(dt.datetime.today().year - 4, dt.datetime.today().year + 1)),
