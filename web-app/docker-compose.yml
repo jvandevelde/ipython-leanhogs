@@ -1,0 +1,16 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ${DATA_DIR:-./data}:/data
+    environment:
+      - NODE_ENV=production
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      - backend
