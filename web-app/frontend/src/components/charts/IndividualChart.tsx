@@ -6,9 +6,10 @@ interface Props {
   results: SpreadResult[];
   near: string;
   selectedFar: string[];
+  chartHeight: number;
 }
 
-export default function IndividualChart({ results, near, selectedFar }: Props) {
+export default function IndividualChart({ results, near, selectedFar, chartHeight }: Props) {
   const filtered = filterFarContracts(results, selectedFar);
   if (filtered.length === 0) return <div className="flex items-center justify-center h-40 text-gray-400">No data.</div>;
 
@@ -55,7 +56,7 @@ export default function IndividualChart({ results, near, selectedFar }: Props) {
                     <ChartWrapper
                       data={traces}
                       layout={{
-                        height: 220,
+                        height: chartHeight,
                         margin: { t: 10, b: 40, l: 50, r: 20 },
                         paper_bgcolor: '#ffffff',
                         plot_bgcolor: '#fafafa',

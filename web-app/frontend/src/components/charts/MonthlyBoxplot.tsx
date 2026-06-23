@@ -6,11 +6,12 @@ interface Props {
   results: SpreadResult[];
   near: string;
   selectedFar: string[];
+  chartHeight: number;
 }
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-export default function MonthlyBoxplot({ results, near, selectedFar }: Props) {
+export default function MonthlyBoxplot({ results, near, selectedFar, chartHeight }: Props) {
   const filtered = filterFarContracts(results, selectedFar);
   if (filtered.length === 0) return <div className="flex items-center justify-center h-40 text-gray-400">No data.</div>;
 
@@ -115,7 +116,7 @@ export default function MonthlyBoxplot({ results, near, selectedFar }: Props) {
             <ChartWrapper
               data={topTraces}
               layout={{
-                height: 260,
+                height: chartHeight,
                 margin: { t: 10, b: 40, l: 55, r: 10 },
                 shapes: rangeShapes,
                 xaxis: { categoryorder: 'array', categoryarray: MONTH_NAMES, showgrid: false },
@@ -130,7 +131,7 @@ export default function MonthlyBoxplot({ results, near, selectedFar }: Props) {
             <ChartWrapper
               data={bottomTraces}
               layout={{
-                height: 200,
+                height: Math.round(chartHeight * 0.77),
                 margin: { t: 10, b: 40, l: 55, r: 10 },
                 shapes: bottomShapes,
                 xaxis: { showgrid: true, gridcolor: '#e5e7eb', type: 'date' },

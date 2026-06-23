@@ -7,9 +7,10 @@ interface Props {
   viewMode: 'standard' | 'condensed';
   upperPct: number;
   lowerPct: number;
+  chartHeight: number;
 }
 
-export default function ButterflyChart({ results, viewMode, upperPct, lowerPct }: Props) {
+export default function ButterflyChart({ results, viewMode, upperPct, lowerPct, chartHeight }: Props) {
   if (results.length === 0) {
     return <div className="flex items-center justify-center h-40 text-gray-400">No data — select combos and calculate.</div>;
   }
@@ -119,7 +120,7 @@ export default function ButterflyChart({ results, viewMode, upperPct, lowerPct }
             <ChartWrapper
               data={traces}
               layout={{
-                height: 440,
+                height: chartHeight,
                 margin: { t: 10, b: 40, l: 60, r: 20 },
                 hovermode: 'x unified',
                 legend: { orientation: 'h', y: -0.15, x: 0 },

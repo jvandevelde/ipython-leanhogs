@@ -6,6 +6,7 @@ interface Props {
   results: SpreadResult[];
   near: string;
   selectedFar: string[];
+  chartHeight: number;
 }
 
 function getCurrentISOWeek(): number {
@@ -16,7 +17,7 @@ function getCurrentISOWeek(): number {
   return Math.floor((now.getTime() - startOfWeek1.getTime()) / (7 * 86400000)) + 1;
 }
 
-export default function WeeklyBoxplot({ results, near, selectedFar }: Props) {
+export default function WeeklyBoxplot({ results, near, selectedFar, chartHeight }: Props) {
   const filtered = filterFarContracts(results, selectedFar);
   if (filtered.length === 0) return <div className="flex items-center justify-center h-40 text-gray-400">No data.</div>;
 
@@ -98,7 +99,7 @@ export default function WeeklyBoxplot({ results, near, selectedFar }: Props) {
             <ChartWrapper
               data={topTraces}
               layout={{
-                height: 260,
+                height: chartHeight,
                 margin: { t: 10, b: 40, l: 55, r: 10 },
                 shapes: topShapes,
                 xaxis: { showgrid: false, title: { text: 'ISO Week' } },
@@ -113,7 +114,7 @@ export default function WeeklyBoxplot({ results, near, selectedFar }: Props) {
             <ChartWrapper
               data={bottomTraces}
               layout={{
-                height: 200,
+                height: Math.round(chartHeight * 0.77),
                 margin: { t: 10, b: 40, l: 55, r: 10 },
                 xaxis: { showgrid: true, gridcolor: '#e5e7eb', type: 'date' },
                 yaxis: { showgrid: true, gridcolor: '#e5e7eb', zeroline: true, zerolinecolor: '#9ca3af' },

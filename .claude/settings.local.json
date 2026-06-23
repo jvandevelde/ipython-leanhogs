@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(conda run:*)",
+      "Read(//home/jvandevelde/miniconda3/envs/hogs/bin/**)",
+      "Read(//home/jvandevelde/anaconda3/envs/hogs/**)",
+      "Read(//home/jvandevelde/**)",
+      "Bash(/home/jvandevelde/miniconda3/envs/hogs/bin/python3:*)",
+      "Bash(/home/jvandevelde/miniconda3/envs/hogs/bin/pip install:*)",
+      "Bash(/home/jvandevelde/miniconda3/envs/hogs/bin/pip show:*)",
+      "Bash(/home/jvandevelde/miniconda3/bin/conda env:*)",
+      "Bash(/home/jvandevelde/miniconda3/envs/hogs/bin/python:*)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}

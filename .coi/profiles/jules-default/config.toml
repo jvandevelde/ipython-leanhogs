@@ -1,0 +1,12 @@
+# https://github.com/mensfeld/code-on-incus/wiki/Profiles
+
+[container]
+image = "coi-jules-default"
+persistent = false
+
+[environment]
+NODE_ENV = "development"
+
+[container.build]
+base = "coi-default"
+script = "build.sh"   

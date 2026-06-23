@@ -1,0 +1,34 @@
+{
+  "env": {
+    "CLAUDE_CODE_EFFORT_LEVEL": "medium"
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "skipDangerousModePermissionPrompt": true
+  },
+  "effortLevel": "medium",
+  "allowDangerouslySkipPermissions": true,
+  "bypassPermissionsModeAccepted": true,
+  "effortCalloutDismissed": true,
+  "effortLevelAccepted": true,
+  "hasSeenEffortPrompt": true,
+  "skipDangerousModePermissionPrompt": true,
+  "enabledPlugins": {
+    "claude-mnemonic@claude-mnemonic": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/home/code/.claude/plugins/marketplaces/claude-mnemonic/hooks/statusline",
+    "padding": 0
+  },
+  "mcpServers": {
+    "claude-mnemonic": {
+      "command": "/home/code/.claude/plugins/marketplaces/claude-mnemonic/mcp-server",
+      "args": [
+        "--project",
+        "${CLAUDE_PROJECT}"
+      ],
+      "env": {}
+    }
+  }
+}

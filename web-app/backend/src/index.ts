@@ -4,6 +4,7 @@ import { calculate } from './controller';
 import { calculateButterfly } from './butterfly';
 import { clearCache } from './dataManager';
 import { DISPLAY_MONTHS, REGULAR_MONTH_SETS, COMMON_BUTTERFLIES, YEAR_MIN } from './utility';
+import { getGaps, fetchSuggestions, applyEdits } from './dataEditor';
 import type { CalculateRequest, ButterflyRequest } from './types';
 
 const app = express();
@@ -53,6 +54,52 @@ app.post('/api/butterfly', (req, res) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('Butterfly error:', message);
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get('/api/data/gaps', (req, res) => {
+  const dataFile = req.query.dataFile as string | undefined;
+  try {
+    if (dataFile) clearCache();
+    const result = getGaps(dataFile);
+    res.json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Gap scan error:', message);
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/data/suggestions', async (req, res) => {
+  const { gaps, apiKey } = req.body as { gaps: { series: string; date: string }[]; apiKey: string };
+  if (!Array.isArray(gaps) || !apiKey) {
+    res.status(400).json({ error: 'gaps (array) and apiKey (string) are required' });
+    return;
+  }
+  try {
+    const results = await fetchSuggestions(gaps, apiKey);
+    res.json(results);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Suggestions error:', message);
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/data/apply', (req, res) => {
+  const { edits, dataFile } = req.body as { edits: { series: string; date: string; value: number }[]; dataFile?: string };
+  if (!Array.isArray(edits)) {
+    res.status(400).json({ error: 'edits (array) is required' });
+    return;
+  }
+  try {
+    applyEdits(edits, dataFile);
+    clearCache();
+    res.json({ saved: edits.length });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Apply edits error:', message);
     res.status(500).json({ error: message });
   }
 });

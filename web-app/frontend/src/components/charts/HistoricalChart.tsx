@@ -6,9 +6,10 @@ interface Props {
   results: SpreadResult[];
   near: string;
   selectedFar: string[];
+  chartHeight: number;
 }
 
-export default function HistoricalChart({ results, near, selectedFar }: Props) {
+export default function HistoricalChart({ results, near, selectedFar, chartHeight }: Props) {
   const filtered = filterFarContracts(results, selectedFar);
   if (filtered.length === 0) return <Empty />;
 
@@ -82,7 +83,7 @@ export default function HistoricalChart({ results, near, selectedFar }: Props) {
             <ChartWrapper
               data={traces}
               layout={{
-                height: 320,
+                height: chartHeight,
                 margin: { t: 10, b: 40, l: 60, r: 20 },
                 hovermode: 'x unified',
                 legend: { orientation: 'h', y: -0.15, x: 0 },

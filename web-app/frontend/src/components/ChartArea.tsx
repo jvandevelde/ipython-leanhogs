@@ -12,9 +12,10 @@ interface Props {
   selectedFar: string[];
   activeChart: ChartType;
   setActiveChart: (c: ChartType) => void;
+  chartHeight: number;
 }
 
-export default function ChartArea({ results, near, selectedFar, activeChart, setActiveChart }: Props) {
+export default function ChartArea({ results, near, selectedFar, activeChart, setActiveChart, chartHeight }: Props) {
   return (
     <main className="flex-1 flex flex-col min-w-0 p-6 gap-4">
       {/* Chart type tabs */}
@@ -50,6 +51,7 @@ export default function ChartArea({ results, near, selectedFar, activeChart, set
             near={`LN${near}`}
             selectedFar={selectedFar}
             activeChart={activeChart}
+            chartHeight={chartHeight}
           />
         )}
       </div>
@@ -57,17 +59,18 @@ export default function ChartArea({ results, near, selectedFar, activeChart, set
   );
 }
 
-function ChartSwitch({ results, near, selectedFar, activeChart }: {
+function ChartSwitch({ results, near, selectedFar, activeChart, chartHeight }: {
   results: SpreadResult[];
   near: string;
   selectedFar: string[];
   activeChart: ChartType;
+  chartHeight: number;
 }) {
   switch (activeChart) {
-    case 'historical': return <HistoricalChart results={results} near={near} selectedFar={selectedFar} />;
-    case 'continuous': return <ContinuousChart results={results} near={near} selectedFar={selectedFar} />;
-    case 'monthly':    return <MonthlyBoxplot  results={results} near={near} selectedFar={selectedFar} />;
-    case 'weekly':     return <WeeklyBoxplot   results={results} near={near} selectedFar={selectedFar} />;
-    case 'individual': return <IndividualChart results={results} near={near} selectedFar={selectedFar} />;
+    case 'historical': return <HistoricalChart results={results} near={near} selectedFar={selectedFar} chartHeight={chartHeight} />;
+    case 'continuous': return <ContinuousChart results={results} near={near} selectedFar={selectedFar} chartHeight={chartHeight} />;
+    case 'monthly':    return <MonthlyBoxplot  results={results} near={near} selectedFar={selectedFar} chartHeight={chartHeight} />;
+    case 'weekly':     return <WeeklyBoxplot   results={results} near={near} selectedFar={selectedFar} chartHeight={chartHeight} />;
+    case 'individual': return <IndividualChart results={results} near={near} selectedFar={selectedFar} chartHeight={chartHeight} />;
   }
 }

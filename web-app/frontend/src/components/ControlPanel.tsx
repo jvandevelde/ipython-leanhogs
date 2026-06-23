@@ -24,6 +24,8 @@ interface Props {
   setSelectedYears: (v: number[]) => void;
   dataFile: string;
   setDataFile: (v: string) => void;
+  chartHeight: number;
+  setChartHeight: (v: number) => void;
   onCalculate: () => void;
   loading: boolean;
   error: string | null;
@@ -38,12 +40,14 @@ export default function ControlPanel({
   viewMode, setViewMode, upperPct, setUpperPct, lowerPct, setLowerPct,
   selectedYears, setSelectedYears,
   dataFile, setDataFile,
+  chartHeight, setChartHeight,
   onCalculate, loading, error,
 }: Props) {
   const farRef = useRef<HTMLSelectElement>(null);
   const yearRef = useRef<HTMLSelectElement>(null);
   const [customLegs, setCustomLegs] = useState<[string, string, string]>(['G', 'J', 'K']);
   const [toast, setToast] = useState<string | null>(null);
+  const [chartHeightDraft, setChartHeightDraft] = useState(String(chartHeight));
 
   function showToast(msg: string) {
     setToast(msg);
@@ -129,6 +133,25 @@ export default function ControlPanel({
             className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
           />
         </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-gray-600 whitespace-nowrap">Chart Height</label>
+          <input
+            type="number"
+            min={200}
+            max={1200}
+            step={20}
+            value={chartHeightDraft}
+            onChange={e => setChartHeightDraft(e.target.value)}
+            onBlur={() => {
+              const n = Math.max(200, Math.min(1200, Number(chartHeightDraft)));
+              const clamped = isNaN(n) ? chartHeight : n;
+              setChartHeight(clamped);
+              setChartHeightDraft(String(clamped));
+            }}
+            className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
+          />
+          <span className="text-xs text-gray-400">px</span>
+        </div>
         <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-medium">
           <button
             onClick={() => setActivePage('spread')}
@@ -141,6 +164,12 @@ export default function ControlPanel({
             className={`flex-1 py-1.5 transition-colors ${activePage === 'butterfly' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
           >
             Butterfly
+          </button>
+          <button
+            onClick={() => setActivePage('data')}
+            className={`flex-1 py-1.5 transition-colors ${activePage === 'data' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+          >
+            Data
           </button>
         </div>
       </div>
@@ -308,43 +337,47 @@ export default function ControlPanel({
         </div>
       )}
 
-      {/* Years — shared */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Years</label>
-        <div className="flex gap-1 mb-1">
-          {([5, 9, 15] as const).map(n => (
-            <button key={n} onClick={() => selectYears(n)}
-              className="flex-1 text-xs py-1 rounded border border-gray-300 hover:border-indigo-400 hover:text-indigo-600 bg-white transition-colors">
-              {n} Yrs
-            </button>
-          ))}
+      {/* Years — shared (hidden on data page) */}
+      {activePage !== 'data' && (
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">Years</label>
+          <div className="flex gap-1 mb-1">
+            {([5, 9, 15] as const).map(n => (
+              <button key={n} onClick={() => selectYears(n)}
+                className="flex-1 text-xs py-1 rounded border border-gray-300 hover:border-indigo-400 hover:text-indigo-600 bg-white transition-colors">
+                {n} Yrs
+              </button>
+            ))}
+          </div>
+          <select
+            ref={yearRef}
+            multiple
+            onChange={handleYearChange}
+            size={10}
+            className="text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          >
+            {allYears.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
         </div>
-        <select
-          ref={yearRef}
-          multiple
-          onChange={handleYearChange}
-          size={10}
-          className="text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        >
-          {allYears.map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-      </div>
+      )}
 
       </div>{/* end scrollable middle */}
 
-      {/* Pinned bottom: calculate + error */}
-      <div className="flex flex-col gap-2 p-4 border-t border-gray-200">
-        <button
-          onClick={onCalculate}
-          disabled={loading}
-          className="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-        >
-          {loading ? 'Calculating…' : 'Calculate'}
-        </button>
-        {error && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-2 break-all">{error}</p>
-        )}
-      </div>
+      {/* Pinned bottom: calculate + error (hidden on data page) */}
+      {activePage !== 'data' && (
+        <div className="flex flex-col gap-2 p-4 border-t border-gray-200">
+          <button
+            onClick={onCalculate}
+            disabled={loading}
+            className="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+          >
+            {loading ? 'Calculating…' : 'Calculate'}
+          </button>
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-2 break-all">{error}</p>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

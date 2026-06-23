@@ -24,3 +24,39 @@ export interface AppConfig {
   commonButterflies: Record<string, [string, string, string]>;
   yearRange: { min: number; max: number };
 }
+
+export interface GapEntry {
+  series: string;
+  date: string;
+}
+
+export interface ActiveSeriesInfo {
+  name: string;
+  lastDate: string;
+  expiry: string;
+  gapCount: number;
+}
+
+export interface GapScanResult {
+  activeSeries: ActiveSeriesInfo[];
+  gaps: GapEntry[];
+  dataLastDate: string;
+}
+
+export interface SuggestionResult {
+  series: string;
+  date: string;
+  value: number | null;
+  error?: string;
+}
+
+export type GapRowStatus = 'pending' | 'approved' | 'rejected';
+
+export interface GapRowState {
+  series: string;
+  date: string;
+  suggested: number | null;
+  suggestionError?: string;
+  inputValue: string;
+  status: GapRowStatus;
+}

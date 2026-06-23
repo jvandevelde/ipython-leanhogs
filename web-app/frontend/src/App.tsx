@@ -3,10 +3,11 @@ import type { AppConfig, ChartType, SpreadResult, ButterflyResult } from './type
 import ControlPanel from './components/ControlPanel';
 import ChartArea from './components/ChartArea';
 import ButterflyChart from './components/charts/ButterflyChart';
+import DataPage from './components/DataPage';
 
 const DEFAULT_FILE = '/data/hog_settlements.xlsx';
 
-export type PageType = 'spread' | 'butterfly';
+export type PageType = 'spread' | 'butterfly' | 'data';
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -18,6 +19,7 @@ export default function App() {
     return [y - 4, y - 3, y - 2, y - 1, y];
   });
   const [dataFile, setDataFile] = useState(DEFAULT_FILE);
+  const [chartHeight, setChartHeight] = useState(400);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,6 +131,8 @@ export default function App() {
         setSelectedYears={setSelectedYears}
         dataFile={dataFile}
         setDataFile={setDataFile}
+        chartHeight={chartHeight}
+        setChartHeight={setChartHeight}
         onCalculate={handleCalculate}
         loading={loading}
         error={error}
@@ -141,15 +145,16 @@ export default function App() {
             selectedFar={selectedFar}
             activeChart={activeChart}
             setActiveChart={setActiveChart}
+            chartHeight={chartHeight}
           />
-        ) : (
+        ) : activePage === 'butterfly' ? (
           <div className="p-6">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-800">Butterfly</h2>
               <p className="text-sm text-gray-500">x − 2y + z · historical comparison with {lowerPct}–{upperPct}th percentile band</p>
             </div>
             {butterflyResults ? (
-              <ButterflyChart results={butterflyResults} viewMode={viewMode} upperPct={upperPct} lowerPct={lowerPct} />
+              <ButterflyChart results={butterflyResults} viewMode={viewMode} upperPct={upperPct} lowerPct={lowerPct} chartHeight={chartHeight} />
             ) : (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 text-gray-300">
@@ -159,6 +164,8 @@ export default function App() {
               </div>
             )}
           </div>
+        ) : (
+          <DataPage dataFile={dataFile} />
         )}
       </div>
     </div>
